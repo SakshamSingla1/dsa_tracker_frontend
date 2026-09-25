@@ -1,0 +1,238 @@
+:root {
+  --paper: #f2f3ee;
+  --paper-raised: #fdfdfb;
+  --ink: #1b1f1b;
+  --ink-soft: #565f58;
+  --line: #dbded4;
+  --line-strong: #c3c7bb;
+
+  --accent: #4a4fcf;
+  --accent-rgb: 74, 79, 207;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7e7fa;
+  --accent-line: #c6c6f2;
+  --ring-gradient-end: #c15fd6;
+
+  --todo: #8a9384;
+  --todo-soft: #eceee8;
+  --done: #1e8a6e;
+  --done-soft: #e1f1ea;
+  --revise: #a9761f;
+  --revise-soft: #f3e9d6;
+
+  --easy: #1e8a6e;
+  --easy-soft: #e1f1ea;
+  --medium: #a9761f;
+  --medium-soft: #f3e9d6;
+  --hard: #b0473c;
+  --hard-soft: #f5e0dc;
+
+  --shadow: 0 1px 2px rgba(20, 24, 18, 0.06);
+  --focus: #4a4fcf;
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-blur: 16px;
+  --glass-shadow: 0 8px 32px -12px rgba(20, 24, 18, 0.18);
+  --glass-shadow-hover: 0 16px 40px -14px rgba(20, 24, 18, 0.26);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.25rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161c;
+    --paper-raised: #1b1e24;
+    --ink: #e9eae4;
+    --ink-soft: #9ba398;
+    --line: #2c3038;
+    --line-strong: #3b404a;
+
+    --accent: #9498ff;
+    --accent-rgb: 148, 152, 255;
+    --accent-ink: #12131c;
+    --accent-soft: #262a4a;
+    --accent-line: #3d4278;
+    --ring-gradient-end: #d88ee8;
+
+    --todo: #7d867f;
+    --todo-soft: #20241f;
+    --done: #4fcba3;
+    --done-soft: #1b3830;
+    --revise: #e3b45c;
+    --revise-soft: #3a2e17;
+
+    --easy: #4fcba3;
+    --easy-soft: #1b3830;
+    --medium: #e3b45c;
+    --medium-soft: #3a2e17;
+    --hard: #e58a7c;
+    --hard-soft: #3b211d;
+
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+    --glass-bg: rgba(24, 26, 22, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 18px;
+    --glass-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5);
+    --glass-shadow-hover: 0 16px 40px -14px rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+  }
+}
+
+/* Explicit theme choice from the toggle in the header wins over the OS setting either way. */
+:root[data-theme="dark"] {
+  --paper: #14161c;
+  --paper-raised: #1b1e24;
+  --ink: #e9eae4;
+  --ink-soft: #9ba398;
+  --line: #2c3038;
+  --line-strong: #3b404a;
+
+  --accent: #9498ff;
+  --accent-rgb: 148, 152, 255;
+  --accent-ink: #12131c;
+  --accent-soft: #262a4a;
+  --accent-line: #3d4278;
+  --ring-gradient-end: #d88ee8;
+
+  --todo: #7d867f;
+  --todo-soft: #20241f;
+  --done: #4fcba3;
+  --done-soft: #1b3830;
+  --revise: #e3b45c;
+  --revise-soft: #3a2e17;
+
+  --easy: #4fcba3;
+  --easy-soft: #1b3830;
+  --medium: #e3b45c;
+  --medium-soft: #3a2e17;
+  --hard: #e58a7c;
+  --hard-soft: #3b211d;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --glass-bg: rgba(24, 26, 22, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 18px;
+  --glass-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.5);
+  --glass-shadow-hover: 0 16px 40px -14px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --paper: #f2f3ee;
+  --paper-raised: #fdfdfb;
+  --ink: #1b1f1b;
+  --ink-soft: #565f58;
+  --line: #dbded4;
+  --line-strong: #c3c7bb;
+
+  --accent: #4a4fcf;
+  --accent-rgb: 74, 79, 207;
+  --accent-ink: #ffffff;
+  --accent-soft: #e7e7fa;
+  --accent-line: #c6c6f2;
+  --ring-gradient-end: #c15fd6;
+
+  --todo: #8a9384;
+  --todo-soft: #eceee8;
+  --done: #1e8a6e;
+  --done-soft: #e1f1ea;
+  --revise: #a9761f;
+  --revise-soft: #f3e9d6;
+
+  --easy: #1e8a6e;
+  --easy-soft: #e1f1ea;
+  --medium: #a9761f;
+  --medium-soft: #f3e9d6;
+  --hard: #b0473c;
+  --hard-soft: #f5e0dc;
+
+  --shadow: 0 1px 2px rgba(20, 24, 18, 0.06);
+  --focus: #4a4fcf;
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-blur: 16px;
+  --glass-shadow: 0 8px 32px -12px rgba(20, 24, 18, 0.18);
+  --glass-shadow-hover: 0 16px 40px -14px rgba(20, 24, 18, 0.26);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.mono {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: var(--accent);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, transform 0.08s ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
