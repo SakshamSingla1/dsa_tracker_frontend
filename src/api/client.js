@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8081/api";
+const API_BASE = `${import.meta.env.VITE_API_BASE ?? "http://localhost:8081"}/api`;
 const TOKEN_KEY = "dsa-auth-token";
 
 export class ApiError extends Error {
