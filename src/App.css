@@ -1950,7 +1950,7 @@
   max-height: calc(100vh - 57px);
 }
 .solve-right .code-editor {
-  height: 100%;
+  min-height: 100%;
 }
 
 @media (max-width: 900px) {
