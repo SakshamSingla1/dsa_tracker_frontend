@@ -2102,6 +2102,7 @@
   font-size: 0.82rem;
   color: var(--ink);
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 /* ---------- Auth page ---------- */
