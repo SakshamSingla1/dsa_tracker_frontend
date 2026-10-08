@@ -87,11 +87,17 @@ export default function Discussion({ problemId }) {
 
       <form className="discussion-form" onSubmit={handlePost}>
         <textarea
-          placeholder="Share your approach, ask a question, or point out a gotcha…"
+          placeholder="Share your approach, ask a question, or point out a gotcha… (Enter to post, Shift+Enter for a new line)"
           rows={3}
           maxLength={4000}
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
         />
         <button type="submit" className="ghost-btn-light" disabled={posting || !body.trim()}>
           {posting ? "Posting…" : "Post"}

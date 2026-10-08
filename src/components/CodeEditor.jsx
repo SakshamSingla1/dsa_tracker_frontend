@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { lintGutter } from "@codemirror/lint";
 import { vim } from "@replit/codemirror-vim";
 import { FiCheckCircle } from "react-icons/fi";
@@ -86,6 +86,8 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
   const [scratchOpen, setScratchOpen] = useState(false);
 
   const hasTests = problem.totalTestCases > 0;
+  const isMac = typeof navigator !== "undefined" && /mac/i.test(navigator.platform || navigator.userAgent);
+  const modKey = isMac ? "⌘" : "Ctrl";
 
   useEffect(() => {
     try {
@@ -178,6 +180,43 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
 
   const current = LANGUAGES[language];
 
+  // The keymap closure below is created once and never changes, so it reads the latest
+  // handlers/state through this ref rather than capturing a stale snapshot from whichever
+  // render first built the (memoized) extensions array.
+  const latestActionsRef = useRef(null);
+  useEffect(() => {
+    latestActionsRef.current = { handleRun, handleRunTests, handleSubmit, running, judging, hasTests };
+  });
+
+  const shortcutKeymap = useMemo(
+    () =>
+      keymap.of([
+        {
+          // Mirrors "Run tests" when this problem has judge test cases (the common case) --
+          // falls back to the generic stdin Run for the few that don't.
+          key: "Mod-Enter",
+          run: () => {
+            const { handleRun, handleRunTests, running, judging, hasTests } = latestActionsRef.current;
+            if (hasTests) {
+              if (judging === null) handleRunTests();
+            } else if (!running) {
+              handleRun();
+            }
+            return true;
+          },
+        },
+        {
+          key: "Mod-Shift-Enter",
+          run: () => {
+            const { handleSubmit, judging, hasTests } = latestActionsRef.current;
+            if (judging === null && hasTests) handleSubmit();
+            return true;
+          },
+        },
+      ]),
+    []
+  );
+
   // vim must come first in the extensions array so it can intercept keystrokes
   // before the language/lint/keymap extensions handle them.
   const editorExtensions = useMemo(
@@ -186,8 +225,9 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
       current.extension,
       lintGutter(),
       EditorView.theme({ "&": { fontSize: `${editorPrefs.fontSize}px` } }),
+      shortcutKeymap,
     ],
-    [current, editorPrefs.vimMode, editorPrefs.fontSize]
+    [current, editorPrefs.vimMode, editorPrefs.fontSize, shortcutKeymap]
   );
 
   return (
@@ -216,8 +256,14 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
             Reset
           </button>
           <span className="code-editor-actions-divider" aria-hidden="true" />
-          <button className="run-btn" onClick={handleRun} disabled={running}>
+          <button
+            className="run-btn"
+            onClick={handleRun}
+            disabled={running}
+            title={hasTests ? undefined : `${modKey}+Enter`}
+          >
             {running ? "Running…" : "Run ▸"}
+            {!hasTests && <kbd className="shortcut-kbd">{modKey}+Enter</kbd>}
           </button>
         </div>
       </div>
@@ -255,9 +301,11 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
           <>
             <button className="ghost-btn" onClick={handleRunTests} disabled={judging !== null}>
               {judging === "run" ? "Running tests…" : "Run tests ▸"}
+              <kbd className="shortcut-kbd">{modKey}+Enter</kbd>
             </button>
             <button className="submit-btn" onClick={handleSubmit} disabled={judging !== null}>
               {judging === "submit" ? "Submitting…" : "Submit"}
+              <kbd className="shortcut-kbd">{modKey}+Shift+Enter</kbd>
             </button>
           </>
         ) : (

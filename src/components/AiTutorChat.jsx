@@ -84,11 +84,17 @@ export default function AiTutorChat({ problemId, code, language }) {
 
       <form className="tutor-chat-form" onSubmit={handleSend}>
         <textarea
-          placeholder="Ask about your approach, complexity, or your code…"
+          placeholder="Ask about your approach, complexity, or your code… (Enter to send, Shift+Enter for a new line)"
           rows={2}
           maxLength={4000}
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
         />
         <button type="submit" className="ghost-btn-light" disabled={sending || !body.trim()}>
           {sending ? "Thinking…" : "Send"}

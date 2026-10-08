@@ -36,11 +36,17 @@ export default function InterviewRun({ session, onSendMessage, onEnd, sending, e
 
       <form className="tutor-chat-form" onSubmit={handleSend}>
         <textarea
-          placeholder="Talk through your approach, or paste your code…"
+          placeholder="Talk through your approach, or paste your code… (Enter to send, Shift+Enter for a new line)"
           rows={3}
           maxLength={4000}
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
         />
         <button type="submit" className="ghost-btn-light" disabled={sending || !body.trim()}>
           {sending ? "…" : "Send"}
