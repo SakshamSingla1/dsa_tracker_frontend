@@ -5,11 +5,13 @@ import DifficultyBreakdown from "./DifficultyBreakdown.jsx";
 import StreakCalendar from "./StreakCalendar.jsx";
 import AnimatedNumber from "./AnimatedNumber.jsx";
 import Achievements from "./Achievements.jsx";
+import Recommendations from "./Recommendations.jsx";
+import CoachNote from "./CoachNote.jsx";
 import { computeSheetStats } from "./date-utils.js";
 import { fetchProgressSummary } from "../../api/client.js";
 import { LoadingState, ErrorState } from "../InlineState.jsx";
 
-export default function Dashboard({ topics }) {
+export default function Dashboard({ topics, onSolve }) {
   // "all" pools every sheet's progress so switching the active sheet doesn't reset your
   // visible streak/achievements -- that's the whole point of tracking them. "sheet" shows
   // just the currently selected sheet, for when you want to see how *this* list is going.
@@ -82,6 +84,12 @@ export default function Dashboard({ topics }) {
               currentStreak={stats.currentStreak}
               longestStreak={stats.longestStreak}
             />
+          </div>
+
+          <div className="dashboard-card">
+            <h2>Recommended for you</h2>
+            <CoachNote />
+            <Recommendations onSolve={onSolve} />
           </div>
 
           <div className="dashboard-card">

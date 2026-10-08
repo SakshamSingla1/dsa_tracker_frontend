@@ -30,6 +30,7 @@ const VIEW_META = {
   dashboard: { title: "Dashboard", lede: "Your progress across every sheet, at a glance." },
   insights: { title: "Insights", lede: "Submission history, verdicts, and where to focus next." },
   contest: { title: "Contest", lede: "Timed practice sessions to sharpen your skills under pressure." },
+  visualizer: { title: "Algorithm Visualizer", lede: "Watch classic sorting algorithms run, step by step." },
   leaderboard: { title: "Leaderboard", lede: "See how you stack up against everyone else here." },
   review: { title: "Review Queue", lede: "Spaced repetition for problems you've flagged to revisit." },
   profile: { title: "Profile", lede: "Your identity, progress, and account settings." },
@@ -192,6 +193,18 @@ export default function Header({
           onClick={() => onViewChange("contest")}
         >
           Contest
+        </button>
+        <button
+          className={`view-tab ${view === "interview" ? "active" : ""}`}
+          onClick={() => onViewChange("interview")}
+        >
+          Interview
+        </button>
+        <button
+          className={`view-tab ${view === "visualizer" ? "active" : ""}`}
+          onClick={() => onViewChange("visualizer")}
+        >
+          Visualizer
         </button>
         <button
           className={`view-tab ${view === "leaderboard" ? "active" : ""}`}

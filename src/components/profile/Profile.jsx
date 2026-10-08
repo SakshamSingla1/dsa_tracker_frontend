@@ -230,7 +230,15 @@ export default function Profile({
     setLoadError(null);
     fetchProfile()
       .then((res) => {
-        updateUser({ displayName: res.displayName, bio: res.bio, createdAt: res.createdAt });
+        updateUser({
+          displayName: res.displayName,
+          bio: res.bio,
+          createdAt: res.createdAt,
+          xp: res.xp,
+          xpLevel: res.level,
+          xpIntoLevel: res.xpIntoLevel,
+          xpForNextLevel: res.xpForNextLevel,
+        });
         setDisplayName(res.displayName || "");
         setBio(res.bio || "");
         setLoaded(true);
@@ -469,6 +477,10 @@ export default function Profile({
                 {analytics ? `${Math.round(analytics.acceptanceRate * 100)}%` : "—"}
               </span>
               <span className="profile-mini-label">acceptance rate</span>
+            </div>
+            <div className="profile-mini-stat" title={`${user.xpIntoLevel ?? 0} / ${user.xpForNextLevel ?? "—"} XP to next level`}>
+              <span className="profile-mini-value mono">{user.xp != null ? `Lv ${user.xpLevel}` : "—"}</span>
+              <span className="profile-mini-label">{user.xp != null ? `${user.xp} XP total` : "level"}</span>
             </div>
           </div>
         </div>

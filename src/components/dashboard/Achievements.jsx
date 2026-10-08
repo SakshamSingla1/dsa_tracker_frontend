@@ -1,5 +1,5 @@
-import { FiAward, FiBookmark, FiCalendar, FiCheckCircle, FiTarget, FiZap } from "react-icons/fi";
-import { GiCrown, GiFlame, GiSprout, GiTrophyCup } from "react-icons/gi";
+import { FiAward, FiBookmark, FiCalendar, FiCheckCircle, FiRepeat, FiTarget, FiZap } from "react-icons/fi";
+import { GiCrown, GiFlame, GiLaurelsTrophy, GiSprout, GiTrophyCup } from "react-icons/gi";
 
 function badge(id, Icon, title, description, current, target, color) {
   return { id, Icon, title, description, current: Math.min(current, target), target, unlocked: current >= target, color };
@@ -19,6 +19,12 @@ function buildBadges(stats) {
     badge("streak-7", FiCalendar, "Week Warrior", "Hit a 7-day streak", stats.longestStreak, 7),
     badge("streak-30", GiTrophyCup, "Streak Master", "Hit a 30-day streak", stats.longestStreak, 30),
     badge("curator", FiBookmark, "Curator", "Bookmark 10 problems", stats.bookmarked, 10),
+    badge("quarter-century", FiZap, "Quarter Century", "Solve 25 problems", stats.done, 25),
+    badge("double-century", GiLaurelsTrophy, "Double Century", "Solve 200 problems", stats.done, 200),
+    badge("unstoppable", GiFlame, "Unstoppable", "Hit a 14-day streak", stats.longestStreak, 14),
+    badge("legend", GiTrophyCup, "Legend", "Hit a 60-day streak", stats.longestStreak, 60),
+    badge("reviewer", FiRepeat, "Reviewer", "Flag 5 problems for revision", stats.revise, 5),
+    badge("super-curator", FiBookmark, "Super Curator", "Bookmark 25 problems", stats.bookmarked, 25),
   ];
 
   if (easy.total > 0) badges.push(badge("easy-sweep", FiCheckCircle, "Easy Sweep", "Finish every Easy problem", easy.done, easy.total, "var(--easy)"));

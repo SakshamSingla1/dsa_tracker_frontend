@@ -156,6 +156,9 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
       onSubmitted?.(res);
       const t = VERDICT_TOAST[res.verdict];
       if (t) toast[t.tone === "success" ? "success" : "error"](t.message, { duration: t.tone === "success" ? 4200 : 3200 });
+      if (res.xpAwarded) {
+        setTimeout(() => toast.show(`+${res.xpAwarded} XP`, { duration: 2400 }), t ? 350 : 0);
+      }
     } catch {
       setJudgeError("Couldn't reach the backend to submit this.");
     } finally {
@@ -295,7 +298,7 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
         </div>
       )}
 
-      <JudgeResult result={judgeResult} />
+      <JudgeResult result={judgeResult} code={code} language={language} />
 
       <ConfirmDialog
         open={resetConfirmOpen}

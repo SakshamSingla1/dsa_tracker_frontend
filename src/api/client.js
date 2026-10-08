@@ -182,6 +182,93 @@ export function deleteAccount({ currentPassword }) {
   });
 }
 
+/** Short, non-spoiling hint from Gemini. `code`/`language` optional context from the editor. */
+export function fetchAiHint(problemId, { code, language } = {}) {
+  return request(`/problems/${problemId}/ai-hint`, {
+    method: "POST",
+    body: JSON.stringify({ code: code ?? null, language: language ?? null }),
+  });
+}
+
+/** Short AI review of a just-submitted solution. Not persisted. */
+export function fetchAiReview({ code, language, verdict }) {
+  return request("/ai-review", {
+    method: "POST",
+    body: JSON.stringify({ code, language, verdict }),
+  });
+}
+
+/** Rule-based "what to solve next" -- weak topics first, unexplored topics as a fallback. */
+export function fetchRecommendations() {
+  return request("/analytics/recommendations");
+}
+
+/** AI-personalized "what to focus on" note built from the user's own practice stats. */
+export function fetchAiCoachNote() {
+  return request("/analytics/ai-coach-note");
+}
+
+/** Full tutor-chat history for this problem, oldest first. */
+export function fetchTutorMessages(problemId) {
+  return request(`/problems/${problemId}/tutor/messages`);
+}
+
+/** Sends one message to the AI tutor for this problem and gets a reply, both persisted. */
+export function sendTutorMessage(problemId, { content, code, language }) {
+  return request(`/problems/${problemId}/tutor/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content, code: code ?? null, language: language ?? null }),
+  });
+}
+
+/** Clears the tutor-chat history for this problem, starting fresh. */
+export function clearTutorMessages(problemId) {
+  return request(`/problems/${problemId}/tutor/messages`, { method: "DELETE" });
+}
+
+/** Starts a new AI mock interview. `problemId` omitted picks a random problem, optionally
+ *  narrowed by `difficulty` ("EASY"/"MEDIUM"/"HARD"). */
+export function startInterview({ problemId, difficulty } = {}) {
+  return request("/interview", {
+    method: "POST",
+    body: JSON.stringify({ problemId: problemId ?? null, difficulty: difficulty ?? null }),
+  });
+}
+
+export function fetchInterviewHistory() {
+  return request("/interview/history");
+}
+
+export function fetchInterviewSession(id) {
+  return request(`/interview/${id}`);
+}
+
+export function sendInterviewMessage(id, content) {
+  return request(`/interview/${id}/messages`, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export function endInterview(id) {
+  return request(`/interview/${id}/end`, { method: "POST" });
+}
+
+export function fetchComments(problemId) {
+  return request(`/problems/${problemId}/comments`);
+}
+
+export function postComment(problemId, body) {
+  return request(`/problems/${problemId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body }),
+  });
+}
+
+export function deleteComment(commentId) {
+  return request(`/comments/${commentId}`, { method: "DELETE" });
+}
+
 export function registerUser(email, password, displayName) {
   return request("/auth/register", {
     method: "POST",

@@ -6,6 +6,9 @@ import ProblemExample from "./ProblemExample.jsx";
 import UserMenu from "./UserMenu.jsx";
 import BookmarkButton from "./BookmarkButton.jsx";
 import HintList from "./HintList.jsx";
+import AiHintPanel from "./AiHintPanel.jsx";
+import AiTutorChat from "./AiTutorChat.jsx";
+import Discussion from "./Discussion.jsx";
 import SubmissionHistory from "./SubmissionHistory.jsx";
 import ContestTimerBanner from "./contest/ContestTimerBanner.jsx";
 import { fetchSubmissions } from "../api/client.js";
@@ -30,6 +33,8 @@ export default function SolveView({
   const [notesDraft, setNotesDraft] = useState(problem.notes ?? "");
   const [notesOpen, setNotesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [discussionOpen, setDiscussionOpen] = useState(false);
+  const [tutorChatOpen, setTutorChatOpen] = useState(false);
   const [submissions, setSubmissions] = useState(null);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
   const [submissionsError, setSubmissionsError] = useState(null);
@@ -41,6 +46,7 @@ export default function SolveView({
     setSubmissions(null);
     setSubmissionsError(null);
     setHistoryOpen(false);
+    setDiscussionOpen(false);
   }, [problem.id, problem.externalUrl, problem.notes]);
 
   useEffect(() => {
@@ -147,6 +153,7 @@ export default function SolveView({
           )}
 
           <HintList hints={problem.hints} />
+          <AiHintPanel problemId={problem.id} />
 
           {problem.timeComplexity && problem.spaceComplexity && (
             <ComplexityCalculator
@@ -217,6 +224,16 @@ export default function SolveView({
               onRetry={loadSubmissions}
             />
           )}
+
+          <button className="ghost-btn-light" onClick={() => setDiscussionOpen((v) => !v)}>
+            {discussionOpen ? "Hide discussion" : "Show discussion"}
+          </button>
+          {discussionOpen && <Discussion problemId={problem.id} />}
+
+          <button className="ghost-btn-light" onClick={() => setTutorChatOpen((v) => !v)}>
+            {tutorChatOpen ? "Hide AI tutor" : "Ask the AI tutor"}
+          </button>
+          {tutorChatOpen && <AiTutorChat key={problem.id} problemId={problem.id} />}
         </div>
 
         <div className={`solve-right ${accepted ? "accepted-pulse" : ""}`}>

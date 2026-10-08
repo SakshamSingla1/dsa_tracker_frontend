@@ -15,6 +15,7 @@ import TopicSection from "./components/TopicSection.jsx";
 import Dashboard from "./components/dashboard/Dashboard.jsx";
 import Insights from "./components/insights/Insights.jsx";
 import Contest from "./components/contest/Contest.jsx";
+import Interview from "./components/interview/Interview.jsx";
 import Leaderboard from "./components/Leaderboard.jsx";
 import Profile from "./components/profile/Profile.jsx";
 import ReviewQueue from "./components/ReviewQueue.jsx";
@@ -24,10 +25,13 @@ import CommandPalette from "./components/CommandPalette.jsx";
 import SkeletonSheet from "./components/SkeletonSheet.jsx";
 import Confetti from "./components/Confetti.jsx";
 import ShareCard from "./components/ShareCard.jsx";
+import AlgorithmVisualizer from "./components/visualizer/AlgorithmVisualizer.jsx";
 import "./App.css";
 
 const SHEET_KEY = "dsa-active-sheet";
-const VALID_VIEWS = new Set(["sheet", "dashboard", "insights", "contest", "leaderboard", "review", "profile"]);
+const VALID_VIEWS = new Set([
+  "sheet", "dashboard", "insights", "contest", "interview", "leaderboard", "review", "profile", "visualizer",
+]);
 
 function loadSheetSlug() {
   try {
@@ -406,7 +410,7 @@ export default function App() {
 
       {view === "dashboard" && (
         <div className="view-transition" key="dashboard">
-          <Dashboard topics={topics} />
+          <Dashboard topics={topics} onSolve={setSolvingId} />
         </div>
       )}
 
@@ -416,9 +420,21 @@ export default function App() {
         </div>
       )}
 
+      {view === "visualizer" && (
+        <div className="view-transition" key="visualizer">
+          <AlgorithmVisualizer />
+        </div>
+      )}
+
       {view === "contest" && (
         <div className="view-transition" key="contest">
           <Contest onSolveProblem={handleSolveFromContest} />
+        </div>
+      )}
+
+      {view === "interview" && (
+        <div className="view-transition" key="interview">
+          <Interview />
         </div>
       )}
 
