@@ -281,6 +281,12 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
       )}
 
       <CodeMirror
+        // Remounts on a language switch: `value` and `extensions` (the language mode) both
+        // change in the same render when switching languages, and @uiw/react-codemirror can
+        // race on that combination -- rebuilding the EditorState from a stale value snapshot
+        // instead of the new one, so the editor kept showing the previous language's code. A
+        // fresh mount always starts from the current `value` prop, sidestepping that race.
+        key={language}
         value={code}
         height={height}
         theme={isDark ? oneDark : "light"}
