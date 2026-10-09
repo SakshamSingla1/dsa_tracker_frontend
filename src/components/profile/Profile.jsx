@@ -42,7 +42,7 @@ import Achievements from "../dashboard/Achievements.jsx";
 import StreakCalendar from "../dashboard/StreakCalendar.jsx";
 import DifficultyBreakdown from "../dashboard/DifficultyBreakdown.jsx";
 import ThemeToggle from "../ThemeToggle.jsx";
-import { computeSheetStats } from "../dashboard/date-utils.js";
+import { computeSheetStats, recentActivity } from "../dashboard/date-utils.js";
 import { computeLevel } from "../profileIdentity.js";
 import { Avatar, Badge, Button, Card, difficultyTone, FieldError, Input, Label, Modal, ProgressBar, Tabs, Textarea } from "../ui/index.js";
 
@@ -111,16 +111,6 @@ function contestSummary(sessions) {
   return { played: sessions.length, finished, abandoned, totalSolved, best };
 }
 
-/** Every solved problem across every sheet, newest first -- derived from the cross-sheet
- *  progress summary already fetched for the streak calendar/difficulty breakdown below. */
-function recentActivity(allTopics, limit = 6) {
-  if (!allTopics) return [];
-  return allTopics
-    .flatMap((t) => t.problems.map((p) => ({ ...p, topicName: t.name })))
-    .filter((p) => p.completedAt)
-    .sort((a, b) => (a.completedAt < b.completedAt ? 1 : -1))
-    .slice(0, limit);
-}
 
 export default function Profile({
   stats,

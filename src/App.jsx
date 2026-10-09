@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FiBookmark, FiSearch } from "react-icons/fi";
+import { FiBookmark, FiCheckCircle, FiSearch, FiStar, FiShuffle } from "react-icons/fi";
 import { fetchProblem, fetchReviewQueue, fetchSheets, fetchTopics, updateProblem } from "./api/client.js";
 import { useAuth } from "./auth/AuthContext.jsx";
 import { useTheme } from "./hooks/useTheme.js";
@@ -10,8 +10,13 @@ import { computeSheetStats, dateKey } from "./components/dashboard/date-utils.js
 import { GiFlame } from "react-icons/gi";
 import AuthPage from "./components/AuthPage.jsx";
 import Header from "./components/Header.jsx";
-import Sidebar from "./components/Sidebar.jsx";
+import AppSidebar from "./components/AppSidebar.jsx";
 import TopicSection from "./components/TopicSection.jsx";
+import StatCard from "./components/StatCard.jsx";
+import StudyCalendarWidget from "./components/widgets/StudyCalendarWidget.jsx";
+import ProgressDonutWidget from "./components/widgets/ProgressDonutWidget.jsx";
+import QuickActionsWidget from "./components/widgets/QuickActionsWidget.jsx";
+import RecentActivityWidget from "./components/widgets/RecentActivityWidget.jsx";
 import Dashboard from "./components/dashboard/Dashboard.jsx";
 import Insights from "./components/insights/Insights.jsx";
 import Contest from "./components/contest/Contest.jsx";
@@ -26,8 +31,22 @@ import SkeletonSheet from "./components/SkeletonSheet.jsx";
 import Confetti from "./components/Confetti.jsx";
 import ShareCard from "./components/ShareCard.jsx";
 import AlgorithmVisualizer from "./components/visualizer/AlgorithmVisualizer.jsx";
-import { Button, Spinner } from "./components/ui/index.js";
+import { Button, SegmentedControl, Spinner } from "./components/ui/index.js";
 import "./App.css";
+
+const STATUS_FILTERS = [
+  { value: "ALL", label: "All" },
+  { value: "TODO", label: "To-do" },
+  { value: "DONE", label: "Done" },
+  { value: "REVISE", label: "Revise" },
+];
+
+const DIFFICULTY_FILTERS = [
+  { value: "ALL", label: "All" },
+  { value: "EASY", label: "Easy" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HARD", label: "Hard" },
+];
 
 const SHEET_KEY = "dsa-active-sheet";
 const VALID_VIEWS = new Set([
@@ -313,6 +332,13 @@ export default function App() {
     setSolvingId(pick.id);
   };
 
+  /** "Continue Sheet" quick action -- jumps to the first not-yet-done problem in sheet order,
+   *  a reasonable "pick up where you left off" since per-problem "last viewed" isn't tracked. */
+  const handleContinue = () => {
+    const next = flatProblems.find((p) => p.status !== "DONE");
+    if (next) setSolvingId(next.id);
+  };
+
   const activeSheetName = sheets.find((s) => s.slug === activeSheetSlug)?.name;
 
   if (!user) {
@@ -367,8 +393,10 @@ export default function App() {
     );
   }
 
+  const allEmpty = filtered.every((f) => f.visibleProblems.length === 0);
+
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="flex min-h-screen bg-paper">
       <Confetti burstKey={celebrateKey} />
       <CommandPalette
         open={cmdkOpen}
@@ -376,166 +404,241 @@ export default function App() {
         problems={flatProblems}
         onSelect={handleSelectFromPalette}
       />
-      <Header
-        total={stats.total}
-        done={stats.done}
-        topicCount={topics.length}
-        streak={stats.currentStreak}
-        bookmarkedCount={stats.bookmarked}
+
+      <AppSidebar
         view={view}
         onViewChange={setView}
         reviewDueCount={reviewDueCount}
-        search={search}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        difficultyFilter={difficultyFilter}
-        onDifficultyFilterChange={setDifficultyFilter}
-        bookmarkedOnly={bookmarkedOnly}
-        onBookmarkedOnlyChange={setBookmarkedOnly}
         sheets={sheets}
         activeSheetSlug={activeSheetSlug}
         activeSheetName={activeSheetName}
         onSheetChange={handleSheetChange}
-        user={user}
-        onLogout={logout}
-        onOpenPalette={() => setCmdkOpen(true)}
-        onRandom={handleRandom}
-        isDark={isDark}
-        onToggleTheme={toggleTheme}
+        topics={view === "sheet" ? topics : null}
       />
 
-      {shareOpen && <ShareCard user={user} accent={accent} onClose={() => setShareOpen(false)} />}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <Header
+          user={user}
+          onLogout={logout}
+          onViewChange={setView}
+          onOpenPalette={() => setCmdkOpen(true)}
+          onRefresh={loadTopics}
+          reviewDueCount={reviewDueCount}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
+        />
 
-      {showStreakBanner && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 pt-4">
-          <div className="flex items-center gap-2.5 rounded-lg border border-medium/30 bg-medium-soft px-4 py-2.5 text-[13.5px] text-medium">
-            <GiFlame aria-hidden="true" className="shrink-0" />
-            <span className="flex-1">
-              You haven&rsquo;t solved anything today — your {stats.currentStreak}-day streak is at risk.
-            </span>
-            <button
-              onClick={() => setStreakBannerDismissed(true)}
-              aria-label="Dismiss"
-              className="shrink-0 h-5 w-5 flex items-center justify-center rounded hover:bg-medium/10"
-            >
-              &times;
-            </button>
+        {shareOpen && <ShareCard user={user} accent={accent} onClose={() => setShareOpen(false)} />}
+
+        {showStreakBanner && (
+          <div className="px-5 lg:px-8 pt-4">
+            <div className="flex items-center gap-2.5 rounded-lg border border-medium/30 bg-medium-soft px-4 py-2.5 text-[13.5px] text-medium">
+              <GiFlame aria-hidden="true" className="shrink-0" />
+              <span className="flex-1">
+                You haven&rsquo;t solved anything today — your {stats.currentStreak}-day streak is at risk.
+              </span>
+              <button
+                onClick={() => setStreakBannerDismissed(true)}
+                aria-label="Dismiss"
+                className="shrink-0 h-5 w-5 flex items-center justify-center rounded hover:bg-medium/10"
+              >
+                &times;
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {view === "dashboard" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="dashboard">
-          <Dashboard topics={topics} onSolve={setSolvingId} />
-        </div>
-      )}
+        {view === "dashboard" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="dashboard">
+            <Dashboard topics={topics} onSolve={setSolvingId} />
+          </div>
+        )}
 
-      {view === "insights" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="insights">
-          <Insights />
-        </div>
-      )}
+        {view === "insights" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="insights">
+            <Insights />
+          </div>
+        )}
 
-      {view === "visualizer" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="visualizer">
-          <AlgorithmVisualizer />
-        </div>
-      )}
+        {view === "visualizer" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="visualizer">
+            <AlgorithmVisualizer />
+          </div>
+        )}
 
-      {view === "contest" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="contest">
-          <Contest onSolveProblem={handleSolveFromContest} />
-        </div>
-      )}
+        {view === "contest" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="contest">
+            <Contest onSolveProblem={handleSolveFromContest} />
+          </div>
+        )}
 
-      {view === "interview" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="interview">
-          <Interview />
-        </div>
-      )}
+        {view === "interview" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="interview">
+            <Interview />
+          </div>
+        )}
 
-      {view === "leaderboard" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="leaderboard">
-          <Leaderboard sheets={sheets} />
-        </div>
-      )}
+        {view === "leaderboard" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="leaderboard">
+            <Leaderboard sheets={sheets} />
+          </div>
+        )}
 
-      {view === "review" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="review">
-          <ReviewQueue onSolve={setSolvingId} onQueueChange={setReviewDueCount} />
-        </div>
-      )}
+        {view === "review" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="review">
+            <ReviewQueue onSolve={setSolvingId} onQueueChange={setReviewDueCount} />
+          </div>
+        )}
 
-      {view === "profile" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="profile">
-          <Profile
-            stats={stats}
-            activeSheetName={activeSheetName}
-            sheets={sheets}
-            onOpenShare={() => setShareOpen(true)}
-            onNavigateToContest={() => setView("contest")}
-            onLogout={logout}
-            isDark={isDark}
-            onToggleTheme={toggleTheme}
-            accent={accent}
-            onAccentChange={setAccent}
-            notifSupported={reminders.supported}
-            notifPrefs={reminders.prefs}
-            onNotifPrefsChange={reminders.setPrefs}
-            notifPermission={reminders.permission}
-            onNotifRequestPermission={reminders.requestPermission}
-          />
-        </div>
-      )}
+        {view === "profile" && (
+          <div className="max-w-[1280px] px-5 lg:px-8 py-6" key="profile">
+            <Profile
+              stats={stats}
+              activeSheetName={activeSheetName}
+              sheets={sheets}
+              onOpenShare={() => setShareOpen(true)}
+              onNavigateToContest={() => setView("contest")}
+              onLogout={logout}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
+              accent={accent}
+              onAccentChange={setAccent}
+              notifSupported={reminders.supported}
+              notifPrefs={reminders.prefs}
+              onNotifPrefsChange={reminders.setPrefs}
+              notifPermission={reminders.permission}
+              onNotifRequestPermission={reminders.requestPermission}
+            />
+          </div>
+        )}
 
-      {view === "sheet" && (
-        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="sheet">
-          <ProblemOfDay sheetSlug={activeSheetSlug} onSolve={setSolvingId} />
-          <div className="flex gap-6 items-start">
-            <Sidebar topics={topics} />
-            {/* "content" kept as a literal class -- ProblemRow's keyboard nav selects
-                rows via .closest(".content") */}
-            <main className="content flex-1 min-w-0">
-              {filtered.every((f) => f.visibleProblems.length === 0) && (
-                <div className="flex flex-col items-center gap-3 py-16 text-center">
-                  <span className="h-10 w-10 rounded-full bg-ink/5 text-ink-soft flex items-center justify-center" aria-hidden="true">
-                    <FiSearch />
-                  </span>
-                  <p className="text-[14px] text-ink-soft">No problems match your filters.</p>
-                  {hasActiveFilters && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters}>
-                      Clear filters
-                    </Button>
+        {view === "sheet" && (
+          <div className="px-5 lg:px-8 py-6" key="sheet">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6 items-start max-w-[1600px]">
+              <div className="min-w-0 space-y-5">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatCard
+                    tone="done"
+                    icon={<FiCheckCircle />}
+                    value={`${stats.done} / ${stats.total}`}
+                    label="Solved"
+                    subtitle={stats.total === 0 ? "—" : `${((stats.done / stats.total) * 100).toFixed(1)}%`}
+                    pct={stats.total === 0 ? 0 : (stats.done / stats.total) * 100}
+                  />
+                  <StatCard
+                    tone="medium"
+                    icon={<GiFlame />}
+                    value={stats.currentStreak}
+                    label="Current Streak"
+                    subtitle={stats.currentStreak > 0 ? "Keep going!" : "Start today!"}
+                    pct={Math.min(100, (stats.currentStreak / 30) * 100)}
+                  />
+                  <StatCard
+                    tone="accent"
+                    icon={<FiStar />}
+                    value={stats.bookmarked}
+                    label="Bookmarked"
+                    subtitle="Save for later"
+                    pct={Math.min(100, (stats.bookmarked / 20) * 100)}
+                  />
+                  <StatCard
+                    tone="cyan"
+                    icon={<span className="text-[10px] font-bold">%</span>}
+                    value={stats.total === 0 ? "0%" : `${Math.round((stats.done / stats.total) * 100)}%`}
+                    label="Completion"
+                    subtitle={`${stats.total - stats.done} remaining`}
+                    pct={stats.total === 0 ? 0 : (stats.done / stats.total) * 100}
+                  />
+                </div>
+
+                <ProblemOfDay sheetSlug={activeSheetSlug} onSolve={setSolvingId} />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 h-9 px-3 rounded-lg border border-line bg-paper-raised min-w-[200px] flex-1 max-w-sm">
+                    <FiSearch className="h-4 w-4 text-ink-soft shrink-0" aria-hidden="true" />
+                    <input
+                      type="text"
+                      placeholder="Search problems by name or tag…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full bg-transparent text-sm text-ink placeholder:text-ink-soft/70 outline-none"
+                    />
+                  </div>
+                  <SegmentedControl options={STATUS_FILTERS} value={statusFilter} onChange={setStatusFilter} />
+                  <SegmentedControl options={DIFFICULTY_FILTERS} value={difficultyFilter} onChange={setDifficultyFilter} />
+                  <button
+                    onClick={() => setBookmarkedOnly((v) => !v)}
+                    className={`flex items-center gap-1.5 h-8 px-3 rounded-pill text-[13px] font-medium border transition-colors
+                      ${bookmarkedOnly ? "bg-accent text-accent-ink border-transparent" : "bg-paper-raised text-ink-soft border-line hover:text-ink"}`}
+                  >
+                    <FiStar aria-hidden="true" className="h-3.5 w-3.5" /> Bookmarked
+                  </button>
+                  <Button variant="ghost" size="sm" icon={<FiShuffle className="h-3.5 w-3.5" />} onClick={handleRandom} title="Jump to a random unsolved problem">
+                    Shuffle
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[15px] font-semibold text-ink">All Topics</h2>
+                  {!allEmpty && (
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={expandAllTopics}>
+                        Expand all
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={collapseAllTopics}>
+                        Collapse all
+                      </Button>
+                    </div>
                   )}
                 </div>
-              )}
-              {!filtered.every((f) => f.visibleProblems.length === 0) && (
-                <div className="flex justify-end gap-2 mb-3">
-                  <Button variant="ghost" size="sm" onClick={expandAllTopics}>
-                    Expand all
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={collapseAllTopics}>
-                    Collapse all
-                  </Button>
-                </div>
-              )}
-              {filtered.map(({ topic, visibleProblems }) => (
-                <TopicSection
-                  key={topic.id}
-                  topic={topic}
-                  visibleProblems={visibleProblems}
-                  onUpdate={handleUpdate}
-                  onSolve={setSolvingId}
-                  onTagClick={setSearch}
-                  collapsed={collapsedTopics.has(topic.id)}
-                  onToggleCollapse={() => toggleTopicCollapsed(topic.id)}
+
+                {/* "content" kept as a literal class -- ProblemRow's keyboard nav selects
+                    rows via .closest(".content") */}
+                <main className="content">
+                  {allEmpty && (
+                    <div className="flex flex-col items-center gap-3 py-16 text-center">
+                      <span className="h-10 w-10 rounded-full bg-ink/5 text-ink-soft flex items-center justify-center" aria-hidden="true">
+                        <FiSearch />
+                      </span>
+                      <p className="text-[14px] text-ink-soft">No problems match your filters.</p>
+                      {hasActiveFilters && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters}>
+                          Clear filters
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {filtered.map(({ topic, visibleProblems }, index) => (
+                    <TopicSection
+                      key={topic.id}
+                      index={index}
+                      topic={topic}
+                      visibleProblems={visibleProblems}
+                      onUpdate={handleUpdate}
+                      onSolve={setSolvingId}
+                      onTagClick={setSearch}
+                      collapsed={collapsedTopics.has(topic.id)}
+                      onToggleCollapse={() => toggleTopicCollapsed(topic.id)}
+                    />
+                  ))}
+                </main>
+              </div>
+
+              <div className="space-y-5 min-w-0">
+                <StudyCalendarWidget dayCounts={stats.dayCounts} />
+                <ProgressDonutWidget stats={stats} onViewDetails={() => setView("dashboard")} />
+                <QuickActionsWidget
+                  onRandom={handleRandom}
+                  onContinue={handleContinue}
+                  onWeakTopics={() => setView("insights")}
+                  onMockTest={() => setView("interview")}
                 />
-              ))}
-            </main>
+                <RecentActivityWidget topics={topics} onViewAll={() => setView("profile")} />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

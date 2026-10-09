@@ -34,6 +34,9 @@
   --color-hard: var(--hard);
   --color-hard-soft: var(--hard-soft);
 
+  --color-cyan: var(--cyan);
+  --color-cyan-soft: var(--cyan-soft);
+
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
@@ -79,6 +82,9 @@
   --shadow-md: 0 4px 12px rgba(17, 17, 19, 0.06);
   --focus: #2563eb;
 
+  --cyan: #0891b2;
+  --cyan-soft: #ecfeff;
+
   /* Kept only so not-yet-migrated legacy CSS (App.css) doesn't render with
      undefined custom properties during the screen-by-screen rebuild. */
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -102,38 +108,41 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #0a0a0b;
-    --paper-raised: #16161a;
-    --ink: #f4f4f5;
-    --ink-soft: #9ca3af;
-    --line: #27272a;
-    --line-strong: #3f3f46;
+    --paper: #0b0a1d;
+    --paper-raised: #16142c;
+    --ink: #f3f1fb;
+    --ink-soft: #9b96b5;
+    --line: #2a2750;
+    --line-strong: #3d386b;
 
-    --accent: #60a5fa;
-    --accent-rgb: 96, 165, 250;
-    --accent-ink: #0b1120;
-    --accent-soft: #15233d;
-    --accent-line: #2a3b57;
-    --ring-gradient-end: #60a5fa;
+    --accent: #8b5cf6;
+    --accent-rgb: 139, 92, 246;
+    --accent-ink: #ffffff;
+    --accent-soft: #241f44;
+    --accent-line: #453a7a;
+    --ring-gradient-end: #c026d3;
 
-    --todo: #71717a;
-    --todo-soft: #1c1c1f;
-    --done: #4ade80;
-    --done-soft: #0d2318;
-    --revise: #fbbf24;
-    --revise-soft: #2b1d05;
+    --todo: #716c93;
+    --todo-soft: #1c1a38;
+    --done: #22c55e;
+    --done-soft: #0f2e1a;
+    --revise: #fb923c;
+    --revise-soft: #3a2210;
 
-    --easy: #4ade80;
-    --easy-soft: #0d2318;
-    --medium: #fbbf24;
-    --medium-soft: #2b1d05;
-    --hard: #f87171;
-    --hard-soft: #2c1212;
+    --easy: #22c55e;
+    --easy-soft: #0f2e1a;
+    --medium: #fb923c;
+    --medium-soft: #3a2210;
+    --hard: #f43f5e;
+    --hard-soft: #3a1220;
 
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+    --cyan: #22d3ee;
+    --cyan-soft: #0e2f38;
 
-    --glass-bg: rgba(22, 22, 26, 0.7);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 8px 24px rgba(76, 29, 149, 0.25);
+
+    --glass-bg: rgba(22, 20, 44, 0.7);
     --glass-border: var(--line);
     --glass-blur: 14px;
     --glass-shadow: var(--shadow);
@@ -145,38 +154,41 @@
 
 /* Explicit theme choice from the toggle in the header wins over the OS setting either way. */
 :root[data-theme="dark"] {
-  --paper: #0a0a0b;
-  --paper-raised: #16161a;
-  --ink: #f4f4f5;
-  --ink-soft: #9ca3af;
-  --line: #27272a;
-  --line-strong: #3f3f46;
+  --paper: #0b0a1d;
+  --paper-raised: #16142c;
+  --ink: #f3f1fb;
+  --ink-soft: #9b96b5;
+  --line: #2a2750;
+  --line-strong: #3d386b;
 
-  --accent: #60a5fa;
-  --accent-rgb: 96, 165, 250;
-  --accent-ink: #0b1120;
-  --accent-soft: #15233d;
-  --accent-line: #2a3b57;
-  --ring-gradient-end: #60a5fa;
+  --accent: #8b5cf6;
+  --accent-rgb: 139, 92, 246;
+  --accent-ink: #ffffff;
+  --accent-soft: #241f44;
+  --accent-line: #453a7a;
+  --ring-gradient-end: #c026d3;
 
-  --todo: #71717a;
-  --todo-soft: #1c1c1f;
-  --done: #4ade80;
-  --done-soft: #0d2318;
-  --revise: #fbbf24;
-  --revise-soft: #2b1d05;
+  --todo: #716c93;
+  --todo-soft: #1c1a38;
+  --done: #22c55e;
+  --done-soft: #0f2e1a;
+  --revise: #fb923c;
+  --revise-soft: #3a2210;
 
-  --easy: #4ade80;
-  --easy-soft: #0d2318;
-  --medium: #fbbf24;
-  --medium-soft: #2b1d05;
-  --hard: #f87171;
-  --hard-soft: #2c1212;
+  --easy: #22c55e;
+  --easy-soft: #0f2e1a;
+  --medium: #fb923c;
+  --medium-soft: #3a2210;
+  --hard: #f43f5e;
+  --hard-soft: #3a1220;
 
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --cyan: #22d3ee;
+  --cyan-soft: #0e2f38;
 
-  --glass-bg: rgba(22, 22, 26, 0.7);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px rgba(76, 29, 149, 0.25);
+
+  --glass-bg: rgba(22, 20, 44, 0.7);
   --glass-border: var(--line);
   --glass-blur: 14px;
   --glass-shadow: var(--shadow);
@@ -217,6 +229,9 @@
   --shadow: 0 1px 2px rgba(17, 17, 19, 0.04);
   --shadow-md: 0 4px 12px rgba(17, 17, 19, 0.06);
   --focus: #2563eb;
+
+  --cyan: #0891b2;
+  --cyan-soft: #ecfeff;
 
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: var(--line);

@@ -82,3 +82,14 @@ export function computeSheetStats(topics) {
 
   return { total, done, revise, bookmarked, byDifficulty, dayCounts, currentStreak: current, longestStreak: longest };
 }
+
+/** Every solved problem across a topic list, newest first -- shared by Profile's "Recent
+ *  activity" card and the sheet view's RecentActivityWidget. */
+export function recentActivity(topics, limit = 6) {
+  if (!topics) return [];
+  return topics
+    .flatMap((t) => t.problems.map((p) => ({ ...p, topicName: t.name })))
+    .filter((p) => p.completedAt)
+    .sort((a, b) => (a.completedAt < b.completedAt ? 1 : -1))
+    .slice(0, limit);
+}

@@ -13,7 +13,7 @@ export const ACCENTS = {
     label: "Violet",
     swatch: "#7c3aed",
     light: { accent: "#7c3aed", accentRgb: "124, 58, 237", accentInk: "#ffffff", accentSoft: "#efe6fd", accentLine: "#d5c2f7", ringEnd: "#c2469a" },
-    dark: { accent: "#b794f6", accentRgb: "183, 148, 246", accentInk: "#1a1330", accentSoft: "#322152", accentLine: "#4a3470", ringEnd: "#e08ec9" },
+    dark: { accent: "#8b5cf6", accentRgb: "139, 92, 246", accentInk: "#ffffff", accentSoft: "#241f44", accentLine: "#453a7a", ringEnd: "#c026d3" },
   },
   ocean: {
     label: "Ocean",
@@ -42,4 +42,4 @@ export const ACCENTS = {
 };
 
 export const ACCENT_ORDER = ["indigo", "violet", "ocean", "rose", "cyan", "fuchsia"];
-export const DEFAULT_ACCENT = "indigo";
+export const DEFAULT_ACCENT = "violet";

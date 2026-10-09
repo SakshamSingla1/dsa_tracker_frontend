@@ -7,6 +7,7 @@ const TONES = {
   easy: "bg-easy-soft text-easy",
   medium: "bg-medium-soft text-medium",
   hard: "bg-hard-soft text-hard",
+  cyan: "bg-cyan-soft text-cyan",
 };
 
 const SIZES = {

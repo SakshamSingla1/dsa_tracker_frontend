@@ -3,6 +3,7 @@ const TONES = {
   done: "bg-done",
   medium: "bg-medium",
   hard: "bg-hard",
+  cyan: "bg-cyan",
 };
 
 /** Flat linear progress bar. `value` is 0-100. */
