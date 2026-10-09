@@ -83,7 +83,7 @@ export default function AppSidebar({
   return (
     <aside className="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 border-r border-line bg-paper-raised/60">
       <div className="flex items-center gap-2.5 px-4 h-16 shrink-0 border-b border-line">
-        <span className="h-8 w-8 rounded-lg bg-accent text-accent-ink flex items-center justify-center text-[13px] font-bold shrink-0">
+        <span className="h-8 w-8 rounded-lg bg-accent text-accent-ink flex items-center justify-center text-[13px] font-bold shrink-0 glow-accent">
           {"</>"}
         </span>
         <div className="min-w-0 relative" ref={sheetMenuRef}>
@@ -126,15 +126,15 @@ export default function AppSidebar({
             <button
               key={item.value}
               onClick={() => onViewChange(item.value)}
-              className={`flex items-center gap-2.5 h-9 px-3 rounded-lg text-[13.5px] font-medium transition-colors
-                ${active ? "bg-accent text-accent-ink" : "text-ink-soft hover:text-ink hover:bg-ink/5"}`}
+              className={`flex items-center gap-2.5 h-9 px-3 rounded-lg text-[13.5px] font-medium transition-all duration-150
+                ${active ? "bg-accent text-accent-ink glow-accent" : "text-ink-soft hover:text-ink hover:bg-ink/5 hover:translate-x-0.5"}`}
             >
               <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="flex-1 text-left">{item.label}</span>
               {item.value === "review" && reviewDueCount > 0 && (
                 <span
                   className={`mono text-[10px] font-bold rounded-pill px-1.5 py-0.5 ${
-                    active ? "bg-accent-ink/20 text-accent-ink" : "bg-accent text-accent-ink"
+                    active ? "bg-accent-ink/20 text-accent-ink" : "bg-accent text-accent-ink animate-pulse-glow"
                   }`}
                 >
                   {reviewDueCount}
@@ -172,10 +172,13 @@ export default function AppSidebar({
                 <button
                   key={topic.id}
                   onClick={() => scrollToTopic(topic.id)}
-                  className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-left transition-colors
-                    ${active ? "bg-accent-soft" : "hover:bg-ink/5"}`}
+                  className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-left border-l-2 transition-all duration-150
+                    ${active ? "bg-accent-soft border-accent" : "border-transparent hover:bg-ink/5 hover:border-line-strong"}`}
                 >
-                  <span className="h-6 w-6 rounded-md bg-accent/15 text-accent flex items-center justify-center shrink-0">
+                  <span
+                    className={`h-6 w-6 rounded-md flex items-center justify-center shrink-0 transition-all duration-150
+                      ${active ? "bg-accent text-accent-ink glow-accent" : "bg-accent/15 text-accent"}`}
+                  >
                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                   <span className={`flex-1 min-w-0 text-[12.5px] truncate ${active ? "text-accent font-medium" : "text-ink"}`}>

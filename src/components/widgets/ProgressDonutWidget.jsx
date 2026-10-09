@@ -16,7 +16,7 @@ export default function ProgressDonutWidget({ stats, onViewDetails }) {
   const offset = circumference * (1 - pct);
 
   return (
-    <Card padding="lg">
+    <Card padding="lg" hoverable className="animate-fade-up" style={{ animationDelay: "60ms" }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13.5px] font-semibold text-ink">My Progress</h3>
         {onViewDetails && (

@@ -17,7 +17,7 @@ export default function Card({
   return (
     <Tag
       className={`bg-paper-raised border border-line rounded-lg
-        ${hoverable ? "transition-colors hover:border-line-strong" : ""}
+        ${hoverable ? "hover-lift hover:border-line-strong" : ""}
         ${PADDING[padding] ?? PADDING.md}
         ${className}`}
       {...rest}

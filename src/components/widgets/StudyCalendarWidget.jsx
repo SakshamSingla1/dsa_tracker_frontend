@@ -43,7 +43,7 @@ export default function StudyCalendarWidget({ dayCounts }) {
   }, [monthOffset]);
 
   return (
-    <Card padding="lg">
+    <Card padding="lg" hoverable className="animate-fade-up" style={{ animationDelay: "0ms" }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13.5px] font-semibold text-ink">Study Calendar</h3>
         <div className="flex items-center gap-1">
@@ -75,10 +75,10 @@ export default function StudyCalendarWidget({ dayCounts }) {
                 <div
                   key={day.key}
                   title={count > 0 ? `${count} solved` : undefined}
-                  className={`aspect-square rounded-[5px] flex items-center justify-center text-[9.5px]
+                  className={`aspect-square rounded-[5px] flex items-center justify-center text-[9.5px] transition-transform duration-150
                     ${day.inMonth ? "text-ink-soft" : "text-ink-soft/30"}
-                    ${count > 0 ? "bg-accent text-accent-ink font-medium" : "bg-ink/[0.04]"}
-                    ${isToday && count === 0 ? "ring-1 ring-accent" : ""}`}
+                    ${count > 0 ? "bg-accent text-accent-ink font-medium hover:scale-110" : "bg-ink/[0.04]"}
+                    ${isToday ? "ring-1 ring-accent animate-pulse-glow" : ""}`}
                 >
                   {day.date.getDate()}
                 </div>

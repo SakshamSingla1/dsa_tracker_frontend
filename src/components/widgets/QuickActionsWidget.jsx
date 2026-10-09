@@ -19,14 +19,14 @@ export default function QuickActionsWidget({ onRandom, onContinue, onWeakTopics,
   const actions = ACTIONS({ onRandom, onContinue, onWeakTopics, onMockTest });
 
   return (
-    <Card padding="lg">
+    <Card padding="lg" hoverable className="animate-fade-up" style={{ animationDelay: "120ms" }}>
       <h3 className="text-[13.5px] font-semibold text-ink mb-3">Quick Actions</h3>
       <div className="grid grid-cols-2 gap-2">
         {actions.map((a) => (
           <button
             key={a.label}
             onClick={a.onClick}
-            className={`flex flex-col items-start gap-2 rounded-lg px-3 py-2.5 text-left transition-colors ${TONE_CLASS[a.tone]}`}
+            className={`flex flex-col items-start gap-2 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:scale-[1.04] hover:shadow-md active:scale-[0.97] ${TONE_CLASS[a.tone]}`}
           >
             <a.icon className="h-4 w-4" aria-hidden="true" />
             <span className="text-[12px] font-medium leading-tight">{a.label}</span>

@@ -518,6 +518,7 @@ export default function App() {
               <div className="min-w-0 space-y-5">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatCard
+                    index={0}
                     tone="done"
                     icon={<FiCheckCircle />}
                     value={`${stats.done} / ${stats.total}`}
@@ -526,6 +527,7 @@ export default function App() {
                     pct={stats.total === 0 ? 0 : (stats.done / stats.total) * 100}
                   />
                   <StatCard
+                    index={1}
                     tone="medium"
                     icon={<GiFlame />}
                     value={stats.currentStreak}
@@ -534,6 +536,7 @@ export default function App() {
                     pct={Math.min(100, (stats.currentStreak / 30) * 100)}
                   />
                   <StatCard
+                    index={2}
                     tone="accent"
                     icon={<FiStar />}
                     value={stats.bookmarked}
@@ -542,6 +545,7 @@ export default function App() {
                     pct={Math.min(100, (stats.bookmarked / 20) * 100)}
                   />
                   <StatCard
+                    index={3}
                     tone="cyan"
                     icon={<span className="text-[10px] font-bold">%</span>}
                     value={stats.total === 0 ? "0%" : `${Math.round((stats.done / stats.total) * 100)}%`}

@@ -8,7 +8,7 @@ export default function RecentActivityWidget({ topics, onViewAll }) {
   const recent = recentActivity(topics, 4);
 
   return (
-    <Card padding="lg">
+    <Card padding="lg" hoverable className="animate-fade-up" style={{ animationDelay: "180ms" }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[13.5px] font-semibold text-ink">Recent Activity</h3>
         {onViewAll && (
