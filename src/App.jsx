@@ -26,7 +26,7 @@ import SkeletonSheet from "./components/SkeletonSheet.jsx";
 import Confetti from "./components/Confetti.jsx";
 import ShareCard from "./components/ShareCard.jsx";
 import AlgorithmVisualizer from "./components/visualizer/AlgorithmVisualizer.jsx";
-import { Button } from "./components/ui/index.js";
+import { Button, Spinner } from "./components/ui/index.js";
 import "./App.css";
 
 const SHEET_KEY = "dsa-active-sheet";
@@ -78,7 +78,12 @@ export default function App() {
   const [solvingId, setSolvingId] = useState(() => initialUrlState.solve ?? null);
   const [activeContestId, setActiveContestId] = useState(null);
   const [collapsedTopics, setCollapsedTopics] = useState(() => new Set());
-  const [standaloneProblem, setStandaloneProblem] = useState(null);
+  // Holds the *full* problem detail (statement/examples/constraints/hints/test counts) for
+  // whichever problem is currently being solved. The topics list only carries a lightweight
+  // summary per problem (see ProblemSummaryResponse on the backend) to keep the sheet view fast,
+  // so entering Solve mode always fetches the complete detail fresh, regardless of whether the
+  // problem came from the current sheet or a contest on a different one.
+  const [solvingDetail, setSolvingDetail] = useState(null);
   const [cmdkOpen, setCmdkOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrateKey, setCelebrateKey] = useState(0);
@@ -177,16 +182,14 @@ export default function App() {
     return topics.flatMap((topic) => topic.problems.map((p) => ({ ...p, topicName: topic.name })));
   }, [topics]);
 
-  // A contest can draw a problem from a sheet other than the one currently loaded into
-  // `topics` -- fall back to fetching it standalone when it's not among flatProblems.
+  // Entering Solve mode always fetches the full problem detail fresh -- the topics list only
+  // has the lightweight summary (see solvingDetail above).
   useEffect(() => {
     if (solvingId == null) return;
-    if (flatProblems.some((p) => p.id === solvingId)) return;
     fetchProblem(solvingId)
-      .then((res) => setStandaloneProblem({ ...res.problem, topicName: res.topicName }))
+      .then((res) => setSolvingDetail({ ...res.problem, topicName: res.topicName }))
       .catch(() => toast.error("Couldn't load that problem."));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solvingId, flatProblems]);
+  }, [solvingId]);
 
   const handleUpdate = (problemId, patch) => {
     const before = flatProblems.find((p) => p.id === problemId);
@@ -199,6 +202,10 @@ export default function App() {
             problems: topic.problems.map((p) => (p.id === updated.id ? updated : p)),
           }))
         );
+        // Keep the Solve view's own copy in sync too, e.g. a status/bookmark change made
+        // while solving should reflect immediately rather than only after leaving and
+        // re-entering (which would re-fetch and pick it up anyway, but this avoids the flicker).
+        setSolvingDetail((prev) => (prev?.id === updated.id ? { ...prev, ...updated } : prev));
         if (patch.status === "DONE" && before?.status !== "DONE") {
           celebrate();
         }
@@ -272,8 +279,7 @@ export default function App() {
     (stats?.currentStreak ?? 0) > 0;
 
   const solvingIndex = solvingId == null ? -1 : flatProblems.findIndex((p) => p.id === solvingId);
-  const solvingProblem =
-    solvingIndex >= 0 ? flatProblems[solvingIndex] : standaloneProblem?.id === solvingId ? standaloneProblem : null;
+  const solvingProblem = solvingDetail?.id === solvingId ? solvingDetail : null;
 
   const handleNavigateSolve = (delta) => {
     if (solvingIndex < 0) return; // standalone problem (e.g. from a contest) isn't part of flatProblems
@@ -296,7 +302,7 @@ export default function App() {
   const handleBackFromSolve = () => {
     setSolvingId(null);
     setActiveContestId(null);
-    setStandaloneProblem(null);
+    setSolvingDetail(null);
   };
 
   const handleRandom = () => {
@@ -323,6 +329,14 @@ export default function App() {
 
   if (!topics) {
     return <SkeletonSheet />;
+  }
+
+  if (solvingId != null && !solvingProblem) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-paper">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (solvingProblem) {
