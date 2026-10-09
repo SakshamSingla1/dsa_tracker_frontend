@@ -31,9 +31,9 @@ export default function CoachNote() {
   if (note === null) return <LoadingState label="Your AI coach is reviewing your stats…" />;
 
   return (
-    <div className="coach-note glass-card">
-      <FiCpu className="coach-note-icon" aria-hidden="true" />
-      <p className="coach-note-text">{note}</p>
+    <div className="flex gap-3 rounded-lg border border-accent-line bg-accent-soft px-4 py-3 mb-3">
+      <FiCpu className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
+      <p className="text-[13.5px] text-ink leading-relaxed">{note}</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FiArrowRight, FiCpu } from "react-icons/fi";
 import { fetchRecommendations } from "../../api/client.js";
 import { LoadingState, ErrorState } from "../InlineState.jsx";
+import { Badge, difficultyTone } from "../ui/index.js";
 
 /** Rule-based "what to solve next" -- weak topics first, unexplored topics as a fallback.
  *  See AnalyticsService#getRecommendations on the backend for the actual logic. */
@@ -21,27 +22,31 @@ export default function Recommendations({ onSolve }) {
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (items === null) return <LoadingState label="Figuring out what to solve next…" />;
   if (items.length === 0) {
-    return <p className="profile-empty-note">Solve a few more problems and recommendations will show up here.</p>;
+    return <p className="text-[13px] text-ink-soft">Solve a few more problems and recommendations will show up here.</p>;
   }
 
   return (
-    <div className="recommendations-list" role="list">
+    <div className="space-y-1.5" role="list">
       {items.map((r) => (
         <button
           key={r.problemId}
-          className="recommendation-row"
           role="listitem"
           onClick={() => onSolve?.(r.problemId)}
+          className="flex items-center gap-3 w-full rounded-lg border border-line px-3 py-2.5 text-left hover:border-line-strong hover:bg-ink/[0.02] transition-colors"
         >
-          <FiCpu className="recommendation-icon" aria-hidden="true" />
-          <div className="recommendation-body">
-            <div className="recommendation-title-row">
-              <span className="recommendation-title">{r.title}</span>
-              <span className={`chip pill diff-${r.difficulty.toLowerCase()}`}>{r.difficulty}</span>
+          <span className="h-8 w-8 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0">
+            <FiCpu aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[13.5px] font-medium text-ink truncate">{r.title}</span>
+              <Badge tone={difficultyTone(r.difficulty)} size="sm">
+                {r.difficulty}
+              </Badge>
             </div>
-            <span className="recommendation-reason">{r.reason}</span>
+            <span className="text-[12px] text-ink-soft">{r.reason}</span>
           </div>
-          <FiArrowRight className="recommendation-arrow" aria-hidden="true" />
+          <FiArrowRight className="text-ink-soft shrink-0" aria-hidden="true" />
         </button>
       ))}
     </div>

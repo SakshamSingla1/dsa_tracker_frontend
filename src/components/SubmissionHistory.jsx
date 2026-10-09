@@ -1,4 +1,5 @@
 import { LoadingState, ErrorState } from "./InlineState.jsx";
+import { Badge } from "./ui/index.js";
 
 const VERDICT_LABEL = {
   ACCEPTED: "Accepted",
@@ -6,6 +7,14 @@ const VERDICT_LABEL = {
   RUNTIME_ERROR: "Runtime Error",
   COMPILE_ERROR: "Compile Error",
   TIME_LIMIT_EXCEEDED: "Time Limit Exceeded",
+};
+
+const VERDICT_TONE = {
+  ACCEPTED: "done",
+  WRONG_ANSWER: "hard",
+  RUNTIME_ERROR: "neutral",
+  COMPILE_ERROR: "medium",
+  TIME_LIMIT_EXCEEDED: "neutral",
 };
 
 function timeAgo(iso) {
@@ -29,22 +38,22 @@ export default function SubmissionHistory({ submissions, loading, error, onRetry
 
   if (!submissions || submissions.length === 0) {
     return (
-      <div className="submission-history-empty" role="status">
+      <div role="status" className="text-[13px] text-ink-soft">
         No submissions yet for this problem.
       </div>
     );
   }
 
   return (
-    <div className="submission-history" role="list" aria-label="Submission history" aria-live="polite">
+    <div className="space-y-1.5" role="list" aria-label="Submission history" aria-live="polite">
       {submissions.map((s) => (
-        <div className="submission-row" role="listitem" key={s.id}>
-          <span className={`chip verdict-pill verdict-${s.verdict.toLowerCase()}`}>{VERDICT_LABEL[s.verdict] ?? s.verdict}</span>
-          <span className="submission-lang mono">{s.language}</span>
-          <span className="submission-cases mono">
+        <div key={s.id} role="listitem" className="flex items-center gap-3 rounded-lg bg-ink/[0.03] px-3 py-2">
+          <Badge tone={VERDICT_TONE[s.verdict] ?? "neutral"}>{VERDICT_LABEL[s.verdict] ?? s.verdict}</Badge>
+          <span className="mono text-[12px] text-ink-soft">{s.language}</span>
+          <span className="mono text-[12px] text-ink-soft">
             {s.passedCount}/{s.totalCount} cases
           </span>
-          <span className="submission-time mono">{timeAgo(s.submittedAt)}</span>
+          <span className="mono text-[12px] text-ink-soft/70 ml-auto">{timeAgo(s.submittedAt)}</span>
         </div>
       ))}
     </div>

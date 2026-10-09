@@ -1,4 +1,5 @@
 import { FiCheckCircle, FiCircle } from "react-icons/fi";
+import { Badge, Button, Card, difficultyTone } from "../ui/index.js";
 
 function formatDuration(startedAt, finishedAt) {
   if (!finishedAt) return "—";
@@ -8,37 +9,37 @@ function formatDuration(startedAt, finishedAt) {
 
 export default function ContestResults({ session, onNewContest }) {
   return (
-    <div className="contest-results glass-card">
-      <h2>Contest results</h2>
-      <div className="contest-results-summary">
-        <div className="hero-stat-tile">
-          <span className="hero-stat-value mono">
+    <Card padding="lg" className="max-w-2xl">
+      <h2 className="text-[16px] font-semibold text-ink mb-4">Contest results</h2>
+      <div className="flex gap-8 mb-5">
+        <div className="flex flex-col">
+          <span className="mono text-2xl font-bold text-ink">
             {session.solvedCount}
-            <span className="hero-stat-of">/{session.totalCount}</span>
+            <span className="text-ink-soft text-base">/{session.totalCount}</span>
           </span>
-          <span className="hero-stat-label">solved</span>
+          <span className="text-[12px] text-ink-soft">solved</span>
         </div>
-        <div className="hero-stat-tile">
-          <span className="hero-stat-value mono">{formatDuration(session.startedAt, session.finishedAt)}</span>
-          <span className="hero-stat-label">time taken</span>
+        <div className="flex flex-col">
+          <span className="mono text-2xl font-bold text-ink">{formatDuration(session.startedAt, session.finishedAt)}</span>
+          <span className="text-[12px] text-ink-soft">time taken</span>
         </div>
       </div>
 
-      <ul className="contest-problem-list">
+      <ul className="rounded-lg border border-line divide-y divide-line overflow-hidden mb-5">
         {session.problems.map((p) => (
-          <li key={p.problemId} className={`contest-problem-row ${p.solved ? "solved" : ""}`}>
-            <span className="contest-problem-status" aria-hidden="true">
+          <li key={p.problemId} className="flex items-center gap-3 px-4 py-2.5">
+            <span className={p.solved ? "text-done" : "text-ink-soft/40"} aria-hidden="true">
               {p.solved ? <FiCheckCircle /> : <FiCircle />}
             </span>
-            <span className="contest-problem-title">{p.title}</span>
-            <span className={`chip pill diff-${p.difficulty.toLowerCase()}`}>{p.difficulty}</span>
+            <span className="text-[13.5px] text-ink flex-1 truncate">{p.title}</span>
+            <Badge tone={difficultyTone(p.difficulty)}>{p.difficulty}</Badge>
           </li>
         ))}
       </ul>
 
-      <button className="submit-btn" onClick={onNewContest}>
+      <Button variant="primary" onClick={onNewContest}>
         Start another contest
-      </button>
-    </div>
+      </Button>
+    </Card>
   );
 }

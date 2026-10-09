@@ -1,4 +1,5 @@
 import InsightsEmptyState from "./InsightsEmptyState.jsx";
+import { ProgressBar } from "../ui/index.js";
 
 const LANGUAGE_LABELS = {
   JAVA: "Java",
@@ -16,14 +17,12 @@ export default function LanguageUsage({ byLanguage }) {
   }
 
   return (
-    <div className="insights-bars">
+    <div className="space-y-3">
       {entries.map(([lang, count]) => (
-        <div className="topic-bar-row" key={lang}>
-          <span className="topic-bar-name">{LANGUAGE_LABELS[lang] ?? lang}</span>
-          <div className="topic-bar-track">
-            <div className="topic-bar-fill" style={{ width: `${(count / max) * 100}%` }} />
-          </div>
-          <span className="topic-bar-count mono">{count}</span>
+        <div key={lang} className="flex items-center gap-3">
+          <span className="w-24 shrink-0 text-[12.5px] text-ink">{LANGUAGE_LABELS[lang] ?? lang}</span>
+          <ProgressBar value={(count / max) * 100} />
+          <span className="mono text-[12.5px] text-ink-soft w-8 text-right shrink-0">{count}</span>
         </div>
       ))}
     </div>

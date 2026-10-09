@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button, Card, Label, SegmentedControl } from "../ui/index.js";
 
 const DIFFICULTIES = [
   { value: "", label: "Any" },
@@ -17,34 +18,23 @@ export default function InterviewSetup({ onStart, starting, error }) {
   };
 
   return (
-    <form className="interview-setup glass-card" onSubmit={handleSubmit}>
-      <h2>Start a mock interview</h2>
-      <p className="contest-setup-lede">
-        The AI draws a problem and plays interviewer -- it reacts to your approach before you code, and gives
-        you a final verdict when you end the session.
+    <Card as="form" padding="lg" onSubmit={handleSubmit} className="max-w-md">
+      <h2 className="text-[16px] font-semibold text-ink mb-1">Start a mock interview</h2>
+      <p className="text-[13px] text-ink-soft mb-5">
+        The AI draws a problem and plays interviewer — it reacts to your approach before you code, and gives you a
+        final verdict when you end the session.
       </p>
 
-      <div className="contest-field">
-        <span className="field-label">Difficulty</span>
-        <div className="filter-group" role="group" aria-label="Difficulty">
-          {DIFFICULTIES.map((d) => (
-            <button
-              type="button"
-              key={d.value}
-              className={`filter-chip ${difficulty === d.value ? "active" : ""}`}
-              onClick={() => setDifficulty(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
+      <div>
+        <Label>Difficulty</Label>
+        <SegmentedControl options={DIFFICULTIES} value={difficulty} onChange={setDifficulty} />
       </div>
 
-      {error && <div className="inline-state inline-state-error">{error}</div>}
+      {error && <div className="mt-4 rounded-lg bg-hard-soft text-hard text-[13px] px-3 py-2">{error}</div>}
 
-      <button className="submit-btn" type="submit" disabled={starting}>
+      <Button type="submit" variant="primary" size="lg" loading={starting} className="w-full mt-5">
         {starting ? "Finding a problem…" : "Start interview ▸"}
-      </button>
-    </form>
+      </Button>
+    </Card>
   );
 }

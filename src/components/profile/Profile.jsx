@@ -19,7 +19,6 @@ import {
   FiShare2,
   FiSliders,
   FiSun,
-  FiUser,
   FiX,
 } from "react-icons/fi";
 import { GiFlame } from "react-icons/gi";
@@ -44,18 +43,26 @@ import StreakCalendar from "../dashboard/StreakCalendar.jsx";
 import DifficultyBreakdown from "../dashboard/DifficultyBreakdown.jsx";
 import ThemeToggle from "../ThemeToggle.jsx";
 import { computeSheetStats } from "../dashboard/date-utils.js";
-import { initials, computeLevel } from "../profileIdentity.js";
-import { useFocusTrap } from "../../hooks/useFocusTrap.js";
+import { computeLevel } from "../profileIdentity.js";
+import { Avatar, Badge, Button, Card, difficultyTone, FieldError, Input, Label, Modal, ProgressBar, Tabs, Textarea } from "../ui/index.js";
 
 /** A small styled toggle switch backed by a real checkbox input, for boolean prefs. */
 function ToggleSwitch({ checked, onChange, disabled, label }) {
   return (
-    <label className={`toggle-switch ${disabled ? "disabled" : ""}`}>
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={onChange} aria-label={label} />
-      <span className="toggle-track">
-        <span className="toggle-thumb" />
-      </span>
+    <label className={`relative inline-flex items-center ${disabled ? "opacity-40 pointer-events-none" : "cursor-pointer"}`}>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={onChange} aria-label={label} className="sr-only peer" />
+      <span className="h-5 w-9 rounded-pill bg-ink/15 peer-checked:bg-accent transition-colors" />
+      <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
     </label>
+  );
+}
+
+function MiniStat({ value, label }) {
+  return (
+    <div className="flex flex-col">
+      <span className="mono text-lg font-bold text-ink">{value}</span>
+      <span className="text-[11.5px] text-ink-soft">{label}</span>
+    </div>
   );
 }
 
@@ -70,8 +77,12 @@ function formatMemberSince(iso) {
 
 const RECENT_DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
-// Duplicated in miniature from VerdictBreakdown.jsx/LanguageUsage.jsx (not exported there) --
-// small enough that importing would mean exporting internals of a component just for this.
+const ACCEPTANCE_CLASS = {
+  good: "bg-done-soft text-done",
+  mid: "bg-medium-soft text-medium",
+  low: "bg-hard-soft text-hard",
+};
+
 function acceptanceTier(rate) {
   if (rate >= 0.7) return "good";
   if (rate >= 0.4) return "mid";
@@ -224,7 +235,6 @@ export default function Profile({
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const deleteTrapRef = useFocusTrap(deleteOpen);
 
   const loadProfile = () => {
     setLoadError(null);
@@ -368,543 +378,470 @@ export default function Profile({
   if (!loaded) return <LoadingState label="Loading your profile…" />;
 
   return (
-    <div className="dashboard profile">
-      <div
-        className="dashboard-card profile-identity-card"
-      >
-        <span className="profile-avatar" aria-hidden="true">
-          {initials(user.displayName || user.email) || <FiUser />}
-        </span>
-        <div className="profile-identity-body">
-          <div className="profile-name-row">
-            <h2 className="profile-name">{user.displayName}</h2>
-            <span className="chip profile-level-chip">
-              <FiAward aria-hidden="true" /> {level.title}
-            </span>
+    <div className="space-y-5">
+      <Card padding="lg" className="flex flex-wrap items-start gap-5">
+        <Avatar name={user.displayName || user.email} size="lg" />
+        <div className="flex-1 min-w-[240px]">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-[17px] font-semibold text-ink">{user.displayName}</h2>
+            <Badge tone="accent" icon={<FiAward className="h-3 w-3" aria-hidden="true" />}>
+              {level.title}
+            </Badge>
           </div>
 
-          <div className="profile-meta-row">
+          <div className="flex items-center gap-2 flex-wrap text-[12.5px] text-ink-soft mt-1">
             <span>{user.email}</span>
             {memberSince && (
               <>
-                <span className="profile-meta-dot" aria-hidden="true">
-                  &middot;
-                </span>
-                <span>
+                <span aria-hidden="true">&middot;</span>
+                <span className="flex items-center gap-1">
                   <FiCalendar aria-hidden="true" /> Member since {memberSince}
                 </span>
               </>
             )}
           </div>
 
-          {user.bio && <p className="profile-bio">{user.bio}</p>}
+          {user.bio && <p className="text-[13px] text-ink mt-2">{user.bio}</p>}
 
           {level.next && (
-            <div className="profile-level-progress" title={`${level.solved}/${level.nextMin} to ${level.next}`}>
-              <span className="profile-level-progress-label mono">LVL</span>
-              <div className="topic-bar-track profile-xp-track">
-                <div className="topic-bar-fill profile-xp-fill" style={{ width: `${level.progress}%` }} />
-              </div>
-              <span className="profile-level-next mono">{level.nextMin - level.solved} to {level.next}</span>
+            <div
+              className="flex items-center gap-2.5 mt-3 max-w-xs"
+              title={`${level.solved}/${level.nextMin} to ${level.next}`}
+            >
+              <span className="mono text-[10px] font-semibold text-ink-soft">LVL</span>
+              <ProgressBar value={level.progress} size="sm" />
+              <span className="mono text-[11px] text-ink-soft whitespace-nowrap">
+                {level.nextMin - level.solved} to {level.next}
+              </span>
             </div>
           )}
         </div>
         {onOpenShare && (
-          <button className="profile-share-btn" onClick={onOpenShare}>
-            <FiShare2 aria-hidden="true" /> Share progress
-          </button>
+          <Button variant="secondary" icon={<FiShare2 className="h-3.5 w-3.5" />} onClick={onOpenShare}>
+            Share progress
+          </Button>
         )}
-      </div>
+      </Card>
 
-      <div className="profile-tabs" role="tablist">
-        <button
-          role="tab"
-          aria-selected={tab === "overview"}
-          className={`profile-tab ${tab === "overview" ? "active" : ""}`}
-          onClick={() => setTab("overview")}
-        >
-          Overview
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === "settings"}
-          className={`profile-tab ${tab === "settings" ? "active" : ""}`}
-          onClick={() => setTab("settings")}
-        >
-          <FiSliders aria-hidden="true" /> Settings
-        </button>
-      </div>
+      <Tabs
+        items={[
+          { value: "overview", label: "Overview" },
+          { value: "settings", label: <span className="flex items-center gap-1.5"><FiSliders aria-hidden="true" /> Settings</span> },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {tab === "overview" && (
-      <>
+        <div className="space-y-5">
+          <div className="text-[11.5px] font-semibold text-ink-soft uppercase tracking-wide">Your progress</div>
 
-      <div className="profile-section-label">Your progress</div>
-
-      <div className="dashboard-top">
-        <div className="dashboard-card dashboard-ring-card">
-          <h2>Overall progress</h2>
-          <ProgressRing done={allStats?.done ?? 0} total={allStats?.total ?? 0} />
-          <p className="profile-ring-caption">Across every sheet{activeSheetName ? ` — you're viewing ${activeSheetName}` : ""}</p>
-        </div>
-        <div className="dashboard-card">
-          <h2>Stats</h2>
-          <div className="profile-mini-stats profile-mini-stats-wide">
-            <div className="profile-mini-stat">
-              <span className={`hero-stat-icon icon-flame ${allStats?.currentStreak > 0 ? "flame-active" : ""}`} aria-hidden="true">
-                <GiFlame />
-              </span>
-              <span className="profile-mini-value mono">{allStats ? allStats.currentStreak : "—"}</span>
-              <span className="profile-mini-label">current streak</span>
-            </div>
-            <div className="profile-mini-stat">
-              <span className="profile-mini-value mono">{allStats ? allStats.longestStreak : "—"}</span>
-              <span className="profile-mini-label">longest streak</span>
-            </div>
-            <div className="profile-mini-stat">
-              <span className="profile-mini-value mono">{allStats ? allStats.bookmarked : "—"}</span>
-              <span className="profile-mini-label">bookmarked</span>
-            </div>
-            <div className="profile-mini-stat">
-              <span className="profile-mini-value mono">
-                {rank && rank !== "unranked" && rank !== null ? `#${rank.position}` : "—"}
-              </span>
-              <span className="profile-mini-label">
-                {rank && rank !== "unranked" && rank !== null ? `of ${rank.of} rank` : "leaderboard rank"}
-              </span>
-            </div>
-            <div className="profile-mini-stat">
-              <span className="profile-mini-value mono">
-                {analytics ? `${Math.round(analytics.acceptanceRate * 100)}%` : "—"}
-              </span>
-              <span className="profile-mini-label">acceptance rate</span>
-            </div>
-            <div className="profile-mini-stat" title={`${user.xpIntoLevel ?? 0} / ${user.xpForNextLevel ?? "—"} XP to next level`}>
-              <span className="profile-mini-value mono">{user.xp != null ? `Lv ${user.xpLevel}` : "—"}</span>
-              <span className="profile-mini-label">{user.xp != null ? `${user.xp} XP total` : "level"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-card">
-        <h2><FiActivity aria-hidden="true" /> Daily activity, every sheet</h2>
-        {allTopicsError ? (
-          <ErrorState message={allTopicsError} onRetry={loadAllTopics} />
-        ) : !allStats ? (
-          <LoadingState label="Crunching your stats…" />
-        ) : (
-          <StreakCalendar
-            dayCounts={allStats.dayCounts}
-            currentStreak={allStats.currentStreak}
-            longestStreak={allStats.longestStreak}
-          />
-        )}
-      </div>
-
-      <div className="dashboard-top">
-        <div className="dashboard-card">
-          <h2><FiPieChart aria-hidden="true" /> By difficulty, every sheet</h2>
-          {allStats ? <DifficultyBreakdown byDifficulty={allStats.byDifficulty} /> : <LoadingState label="Loading…" />}
-        </div>
-
-        <div className="dashboard-card">
-          <h2><FiLayers aria-hidden="true" /> By sheet</h2>
-          {sheetStatsError ? (
-            <ErrorState message={sheetStatsError} onRetry={loadSheetStats} />
-          ) : !sheetStats ? (
-            <LoadingState label="Loading…" />
-          ) : (
-            <div className="profile-sheet-breakdown">
-              {sheetStats.map(([sheet, s]) => {
-                const pct = s.total === 0 ? 0 : Math.round((s.done / s.total) * 100);
-                return (
-                  <div className="profile-sheet-row" key={sheet.slug}>
-                    <span className="profile-sheet-name">{sheet.name}</span>
-                    <div className="topic-bar-track">
-                      <div className="topic-bar-fill" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="topic-bar-count mono">
-                      {s.done}/{s.total}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="profile-section-label">Your activity</div>
-
-      <div className="dashboard-top">
-        <div className="dashboard-card">
-          <h2><FiFlag aria-hidden="true" /> Contest activity</h2>
-          {contestsError ? (
-            <ErrorState message={contestsError} onRetry={loadContests} />
-          ) : !contests ? (
-            <LoadingState label="Loading…" />
-          ) : !contestStats ? (
-            <div className="profile-empty-note profile-empty-note-block">
-              <p>No contests yet — try a timed challenge to see your stats here.</p>
-              {onNavigateToContest && (
-                <button type="button" className="ghost-btn-light" onClick={onNavigateToContest}>
-                  Start a contest
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="profile-mini-stats">
-              <div className="profile-mini-stat">
-                <span className="profile-mini-value mono">{contestStats.played}</span>
-                <span className="profile-mini-label">played</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4">Overall progress</h2>
+              <div className="flex flex-col items-center gap-3">
+                <ProgressRing done={allStats?.done ?? 0} total={allStats?.total ?? 0} />
+                <p className="text-[12px] text-ink-soft text-center">
+                  Across every sheet{activeSheetName ? ` — you're viewing ${activeSheetName}` : ""}
+                </p>
               </div>
-              <div className="profile-mini-stat">
-                <span className="profile-mini-value mono">{contestStats.finished}</span>
-                <span className="profile-mini-label">finished</span>
-              </div>
-              <div className="profile-mini-stat">
-                <span className="profile-mini-value mono">{contestStats.totalSolved}</span>
-                <span className="profile-mini-label">problems solved</span>
-              </div>
-              {contestStats.best && (
-                <div className="profile-mini-stat">
-                  <span className="profile-mini-value mono">
-                    {contestStats.best.solvedCount}/{contestStats.best.totalCount}
+            </Card>
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4">Stats</h2>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex flex-col">
+                  <span className={`h-5 w-5 mb-1 ${allStats?.currentStreak > 0 ? "text-medium" : "text-ink-soft"}`} aria-hidden="true">
+                    <GiFlame />
                   </span>
-                  <span className="profile-mini-label">best result</span>
+                  <span className="mono text-lg font-bold text-ink">{allStats ? allStats.currentStreak : "—"}</span>
+                  <span className="text-[11.5px] text-ink-soft">current streak</span>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="dashboard-card">
-          <h2><FiCode aria-hidden="true" /> Submission stats</h2>
-          {analyticsError ? (
-            <ErrorState message={analyticsError} onRetry={loadAnalytics} />
-          ) : !analytics ? (
-            <LoadingState label="Loading…" />
-          ) : analytics.totalSubmissions === 0 ? (
-            <p className="profile-empty-note">No submissions yet — run or submit a solution to see your stats here.</p>
-          ) : (
-            <div className="profile-mini-stats">
-              <div className="profile-mini-stat">
-                <span className="profile-mini-value mono">{analytics.totalSubmissions}</span>
-                <span className="profile-mini-label">submissions</span>
-              </div>
-              <div className="profile-mini-stat">
-                <span className={`chip insights-acceptance-chip tier-${acceptanceTier(analytics.acceptanceRate)} mono`}>
-                  {Math.round(analytics.acceptanceRate * 100)}% accepted
-                </span>
-              </div>
-              {topLanguage(analytics.byLanguage) && (
-                <div className="profile-mini-stat">
-                  <span className="profile-mini-value">{topLanguage(analytics.byLanguage)}</span>
-                  <span className="profile-mini-label">top language</span>
+                <MiniStat value={allStats ? allStats.longestStreak : "—"} label="longest streak" />
+                <MiniStat value={allStats ? allStats.bookmarked : "—"} label="bookmarked" />
+                <MiniStat
+                  value={rank && rank !== "unranked" && rank !== null ? `#${rank.position}` : "—"}
+                  label={rank && rank !== "unranked" && rank !== null ? `of ${rank.of} rank` : "leaderboard rank"}
+                />
+                <MiniStat value={analytics ? `${Math.round(analytics.acceptanceRate * 100)}%` : "—"} label="acceptance rate" />
+                <div className="flex flex-col" title={`${user.xpIntoLevel ?? 0} / ${user.xpForNextLevel ?? "—"} XP to next level`}>
+                  <span className="mono text-lg font-bold text-ink">{user.xp != null ? `Lv ${user.xpLevel}` : "—"}</span>
+                  <span className="text-[11.5px] text-ink-soft">{user.xp != null ? `${user.xp} XP total` : "level"}</span>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="dashboard-card">
-        <h2><FiClock aria-hidden="true" /> Recent activity</h2>
-        {!allTopics ? (
-          <LoadingState label="Loading…" />
-        ) : recent.length === 0 ? (
-          <p className="profile-empty-note">Nothing solved yet -- your recent solves will show up here.</p>
-        ) : (
-          <ul className="profile-recent-list">
-            {recent.map((p) => (
-              <li className="profile-recent-row" key={p.id}>
-                <FiCheckCircle className="profile-recent-icon" aria-hidden="true" />
-                <span className="profile-recent-title">{p.title}</span>
-                <span className={`chip pill diff-${p.difficulty.toLowerCase()}`}>{p.difficulty}</span>
-                <span className="profile-recent-date mono">{RECENT_DATE_FMT.format(new Date(p.completedAt))}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {stats && (
-        <>
-          <div className="profile-section-label">Achievements</div>
-          <div className="dashboard-card profile-achievements-card">
-            <h2><FiAward aria-hidden="true" /> Achievements</h2>
-            <Achievements stats={stats} />
+              </div>
+            </Card>
           </div>
-        </>
-      )}
 
-      </>
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+              <FiActivity aria-hidden="true" /> Daily activity, every sheet
+            </h2>
+            {allTopicsError ? (
+              <ErrorState message={allTopicsError} onRetry={loadAllTopics} />
+            ) : !allStats ? (
+              <LoadingState label="Crunching your stats…" />
+            ) : (
+              <StreakCalendar dayCounts={allStats.dayCounts} currentStreak={allStats.currentStreak} longestStreak={allStats.longestStreak} />
+            )}
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                <FiPieChart aria-hidden="true" /> By difficulty, every sheet
+              </h2>
+              {allStats ? <DifficultyBreakdown byDifficulty={allStats.byDifficulty} /> : <LoadingState label="Loading…" />}
+            </Card>
+
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                <FiLayers aria-hidden="true" /> By sheet
+              </h2>
+              {sheetStatsError ? (
+                <ErrorState message={sheetStatsError} onRetry={loadSheetStats} />
+              ) : !sheetStats ? (
+                <LoadingState label="Loading…" />
+              ) : (
+                <div className="space-y-3">
+                  {sheetStats.map(([sheet, s]) => {
+                    const pct = s.total === 0 ? 0 : Math.round((s.done / s.total) * 100);
+                    return (
+                      <div key={sheet.slug} className="flex items-center gap-3">
+                        <span className="text-[13px] text-ink w-32 shrink-0 truncate">{sheet.name}</span>
+                        <ProgressBar value={pct} />
+                        <span className="mono text-[12.5px] text-ink-soft w-14 text-right shrink-0">
+                          {s.done}/{s.total}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div className="text-[11.5px] font-semibold text-ink-soft uppercase tracking-wide">Your activity</div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                <FiFlag aria-hidden="true" /> Contest activity
+              </h2>
+              {contestsError ? (
+                <ErrorState message={contestsError} onRetry={loadContests} />
+              ) : !contests ? (
+                <LoadingState label="Loading…" />
+              ) : !contestStats ? (
+                <div className="space-y-3">
+                  <p className="text-[13px] text-ink-soft">No contests yet — try a timed challenge to see your stats here.</p>
+                  {onNavigateToContest && (
+                    <Button variant="ghost" size="sm" onClick={onNavigateToContest}>
+                      Start a contest
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <MiniStat value={contestStats.played} label="played" />
+                  <MiniStat value={contestStats.finished} label="finished" />
+                  <MiniStat value={contestStats.totalSolved} label="problems solved" />
+                  {contestStats.best && (
+                    <MiniStat value={`${contestStats.best.solvedCount}/${contestStats.best.totalCount}`} label="best result" />
+                  )}
+                </div>
+              )}
+            </Card>
+
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                <FiCode aria-hidden="true" /> Submission stats
+              </h2>
+              {analyticsError ? (
+                <ErrorState message={analyticsError} onRetry={loadAnalytics} />
+              ) : !analytics ? (
+                <LoadingState label="Loading…" />
+              ) : analytics.totalSubmissions === 0 ? (
+                <p className="text-[13px] text-ink-soft">No submissions yet — run or submit a solution to see your stats here.</p>
+              ) : (
+                <div className="flex items-center gap-6">
+                  <MiniStat value={analytics.totalSubmissions} label="submissions" />
+                  <span className={`mono text-[12.5px] font-semibold rounded-pill px-2.5 py-1 ${ACCEPTANCE_CLASS[acceptanceTier(analytics.acceptanceRate)]}`}>
+                    {Math.round(analytics.acceptanceRate * 100)}% accepted
+                  </span>
+                  {topLanguage(analytics.byLanguage) && <MiniStat value={topLanguage(analytics.byLanguage)} label="top language" />}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+              <FiClock aria-hidden="true" /> Recent activity
+            </h2>
+            {!allTopics ? (
+              <LoadingState label="Loading…" />
+            ) : recent.length === 0 ? (
+              <p className="text-[13px] text-ink-soft">Nothing solved yet -- your recent solves will show up here.</p>
+            ) : (
+              <ul className="space-y-2">
+                {recent.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3">
+                    <FiCheckCircle className="text-done shrink-0" aria-hidden="true" />
+                    <span className="text-[13px] text-ink flex-1 truncate">{p.title}</span>
+                    <Badge tone={difficultyTone(p.difficulty)}>{p.difficulty}</Badge>
+                    <span className="mono text-[12px] text-ink-soft shrink-0">{RECENT_DATE_FMT.format(new Date(p.completedAt))}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          {stats && (
+            <>
+              <div className="text-[11.5px] font-semibold text-ink-soft uppercase tracking-wide">Achievements</div>
+              <Card padding="lg">
+                <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                  <FiAward aria-hidden="true" /> Achievements
+                </h2>
+                <Achievements stats={stats} />
+              </Card>
+            </>
+          )}
+        </div>
       )}
 
       {tab === "settings" && (
-      <>
+        <div className="space-y-5">
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+              <FiSettings aria-hidden="true" /> Preferences
+            </h2>
 
-      <div className="dashboard-card profile-prefs-card">
-        <h2><FiSettings aria-hidden="true" /> Preferences</h2>
+            <div className="mb-6">
+              <h3 className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-soft uppercase tracking-wide mb-3">
+                <FiSun aria-hidden="true" /> Appearance
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[13.5px] text-ink">Theme</span>
+                    <span className="text-[12px] text-ink-soft">{isDark ? "Dark" : "Light"}</span>
+                  </div>
+                  <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
+                </div>
 
-        <div className="profile-pref-group">
-          <h3 className="profile-pref-group-label"><FiSun aria-hidden="true" /> Appearance</h3>
-          <div className="profile-prefs">
-            <div className="profile-pref-row">
-              <div className="profile-pref-label">
-                <span>Theme</span>
-                <span className="profile-pref-hint">{isDark ? "Dark" : "Light"}</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-[13.5px] text-ink">Accent color</span>
+                    <span className="text-[12px] text-ink-soft">{ACCENTS[accent]?.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {ACCENT_ORDER.map((key) => (
+                      <button
+                        key={key}
+                        style={{ background: ACCENTS[key].swatch }}
+                        title={ACCENTS[key].label}
+                        aria-label={ACCENTS[key].label}
+                        aria-pressed={accent === key}
+                        onClick={() => onAccentChange(key)}
+                        className={`h-7 w-7 rounded-full flex items-center justify-center transition-transform
+                          ${accent === key ? "ring-2 ring-offset-2 ring-offset-paper-raised ring-ink/30 scale-105" : "hover:scale-105"}`}
+                      >
+                        {accent === key && <FiCheck className="text-white h-3.5 w-3.5" aria-hidden="true" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
             </div>
 
-            <div className="profile-pref-row profile-pref-row-wrap">
-              <div className="profile-pref-label">
-                <span>Accent color</span>
-                <span className="profile-pref-hint">{ACCENTS[accent]?.label}</span>
-              </div>
-              <div className="profile-accent-swatches">
-                {ACCENT_ORDER.map((key) => (
-                  <button
-                    key={key}
-                    className={`accent-swatch ${accent === key ? "active" : ""}`}
-                    style={{ background: ACCENTS[key].swatch }}
-                    title={ACCENTS[key].label}
-                    aria-label={ACCENTS[key].label}
-                    aria-pressed={accent === key}
-                    onClick={() => onAccentChange(key)}
-                  >
-                    {accent === key && <FiCheck className="accent-swatch-check" aria-hidden="true" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+            <div>
+              <h3 className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-soft uppercase tracking-wide mb-3">
+                <FiBell aria-hidden="true" /> Notifications
+              </h3>
 
-        <div className="profile-pref-group">
-          <h3 className="profile-pref-group-label"><FiBell aria-hidden="true" /> Notifications</h3>
-
-          {!notifSupported ? (
-            <p className="profile-pref-note profile-pref-note-muted">
-              Notifications aren&rsquo;t supported in this browser.
-            </p>
-          ) : (
-            <div className="profile-prefs">
-              <div className="profile-pref-row">
-                <span>Daily reminders</span>
-                <ToggleSwitch
-                  label="Daily reminders"
-                  checked={notifPrefs.enabled}
-                  onChange={() => {
-                    if (!notifPrefs.enabled && notifPermission === "default") {
-                      onNotifRequestPermission().then((result) => {
-                        if (result === "granted") onNotifPrefsChange({ enabled: true });
-                      });
-                      return;
-                    }
-                    onNotifPrefsChange({ enabled: !notifPrefs.enabled });
-                  }}
-                />
-              </div>
-              {notifPermission === "denied" && (
-                <p className="profile-pref-note profile-pref-note-warn">
-                  <FiAlertTriangle aria-hidden="true" /> Blocked for this site &mdash; re-enable notifications in
-                  your browser&rsquo;s site settings.
-                </p>
+              {!notifSupported ? (
+                <p className="text-[13px] text-ink-soft">Notifications aren&rsquo;t supported in this browser.</p>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13.5px] text-ink">Daily reminders</span>
+                    <ToggleSwitch
+                      label="Daily reminders"
+                      checked={notifPrefs.enabled}
+                      onChange={() => {
+                        if (!notifPrefs.enabled && notifPermission === "default") {
+                          onNotifRequestPermission().then((result) => {
+                            if (result === "granted") onNotifPrefsChange({ enabled: true });
+                          });
+                          return;
+                        }
+                        onNotifPrefsChange({ enabled: !notifPrefs.enabled });
+                      }}
+                    />
+                  </div>
+                  {notifPermission === "denied" && (
+                    <p className="flex items-center gap-1.5 text-[12.5px] text-medium">
+                      <FiAlertTriangle aria-hidden="true" /> Blocked for this site &mdash; re-enable notifications in your
+                      browser&rsquo;s site settings.
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13.5px] text-ink">Remind me at</span>
+                    <input
+                      type="time"
+                      value={notifPrefs.dailyTime}
+                      disabled={!notifPrefs.enabled}
+                      onChange={(e) => onNotifPrefsChange({ dailyTime: e.target.value })}
+                      className="h-8 px-2 rounded-lg border border-line bg-paper-raised text-[13px] text-ink disabled:opacity-40"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13.5px] text-ink">Due reviews</span>
+                    <ToggleSwitch
+                      label="Due reviews"
+                      checked={notifPrefs.reviewDue}
+                      disabled={!notifPrefs.enabled}
+                      onChange={(e) => onNotifPrefsChange({ reviewDue: e.target.checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13.5px] text-ink">Streak at risk</span>
+                    <ToggleSwitch
+                      label="Streak at risk"
+                      checked={notifPrefs.streakAtRisk}
+                      disabled={!notifPrefs.enabled}
+                      onChange={(e) => onNotifPrefsChange({ streakAtRisk: e.target.checked })}
+                    />
+                  </div>
+                </div>
               )}
-              <div className="profile-pref-row">
-                <span>Remind me at</span>
-                <input
-                  type="time"
-                  className="profile-time-input"
-                  value={notifPrefs.dailyTime}
-                  disabled={!notifPrefs.enabled}
-                  onChange={(e) => onNotifPrefsChange({ dailyTime: e.target.value })}
-                />
-              </div>
-              <div className="profile-pref-row">
-                <span>Due reviews</span>
-                <ToggleSwitch
-                  label="Due reviews"
-                  checked={notifPrefs.reviewDue}
-                  disabled={!notifPrefs.enabled}
-                  onChange={(e) => onNotifPrefsChange({ reviewDue: e.target.checked })}
-                />
-              </div>
-              <div className="profile-pref-row">
-                <span>Streak at risk</span>
-                <ToggleSwitch
-                  label="Streak at risk"
-                  checked={notifPrefs.streakAtRisk}
-                  disabled={!notifPrefs.enabled}
-                  onChange={(e) => onNotifPrefsChange({ streakAtRisk: e.target.checked })}
-                />
-              </div>
             </div>
-          )}
-        </div>
-      </div>
+          </Card>
 
-      <div className="dashboard-top">
-        {!editOpen ? (
-          <div className="dashboard-card profile-form">
-            <h2>Edit profile</h2>
-            <p className="profile-edit-summary">
-              <span className="profile-edit-summary-name">{user.displayName}</span>
-              {user.bio && <span className="profile-edit-summary-bio">{user.bio}</span>}
-              {!user.bio && <span className="profile-edit-summary-bio profile-edit-summary-empty">No bio yet</span>}
-            </p>
-            <button type="button" className="ghost-btn" onClick={openEditProfile}>
-              <FiEdit2 aria-hidden="true" /> Edit
-            </button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {!editOpen ? (
+              <Card padding="lg">
+                <h2 className="text-[14px] font-semibold text-ink mb-3">Edit profile</h2>
+                <div className="mb-4">
+                  <div className="text-[13.5px] font-medium text-ink">{user.displayName}</div>
+                  <div className={`text-[13px] mt-0.5 ${user.bio ? "text-ink-soft" : "text-ink-soft/50 italic"}`}>
+                    {user.bio || "No bio yet"}
+                  </div>
+                </div>
+                <Button variant="secondary" size="sm" icon={<FiEdit2 className="h-3.5 w-3.5" />} onClick={openEditProfile}>
+                  Edit
+                </Button>
+              </Card>
+            ) : (
+              <Card as="form" padding="lg" onSubmit={handleSaveProfile}>
+                <h2 className="text-[14px] font-semibold text-ink mb-4">Edit profile</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Display name</Label>
+                    <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} autoFocus />
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      maxLength={280}
+                      rows={3}
+                      placeholder="A short line about yourself (optional)"
+                    />
+                    <span className="mono text-[11px] text-ink-soft/70">{bio.length}/280</span>
+                  </div>
+                  <FieldError>{profileError}</FieldError>
+                  <div className="flex items-center gap-2">
+                    <Button type="submit" variant="primary" loading={savingProfile} disabled={!profileDirty}>
+                      Save changes
+                    </Button>
+                    <Button type="button" variant="ghost" icon={<FiX className="h-3.5 w-3.5" />} onClick={cancelEditProfile} disabled={savingProfile}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            <Card as="form" padding="lg" onSubmit={handleChangePassword}>
+              <h2 className="text-[14px] font-semibold text-ink mb-4 flex items-center gap-1.5">
+                <FiLock aria-hidden="true" /> Change password
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <Label>Current password</Label>
+                  <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" />
+                </div>
+                <div>
+                  <Label>New password</Label>
+                  <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" />
+                </div>
+                <div>
+                  <Label>Confirm new password</Label>
+                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} autoComplete="new-password" />
+                </div>
+                <FieldError>{passwordError}</FieldError>
+                <Button type="submit" variant="primary" loading={savingPassword} disabled={!currentPassword || !newPassword || !confirmPassword}>
+                  Change password
+                </Button>
+              </div>
+            </Card>
           </div>
-        ) : (
-          <form className="dashboard-card profile-form" onSubmit={handleSaveProfile}>
-            <h2>Edit profile</h2>
-            <label className="auth-field">
-              <span>Display name</span>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={80}
-                autoFocus
-              />
-            </label>
-            <label className="auth-field">
-              <span>Bio</span>
-              <textarea
-                className="profile-bio-input"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                maxLength={280}
-                rows={3}
-                placeholder="A short line about yourself (optional)"
-              />
-              <span className="profile-char-count mono">{bio.length}/280</span>
-            </label>
-            {profileError && <p className="auth-error">{profileError}</p>}
-            <div className="profile-edit-actions">
-              <button type="submit" className="submit-btn" disabled={savingProfile || !profileDirty}>
-                {savingProfile ? "Saving…" : "Save changes"}
-              </button>
-              <button type="button" className="ghost-btn-light" onClick={cancelEditProfile} disabled={savingProfile}>
-                <FiX aria-hidden="true" /> Cancel
-              </button>
-            </div>
-          </form>
-        )}
 
-        <form className="dashboard-card profile-form" onSubmit={handleChangePassword}>
-          <h2>
-            <FiLock aria-hidden="true" /> Change password
-          </h2>
-          <label className="auth-field">
-            <span>Current password</span>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </label>
-          <label className="auth-field">
-            <span>New password</span>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </label>
-          <label className="auth-field">
-            <span>Confirm new password</span>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </label>
-          {passwordError && <p className="auth-error">{passwordError}</p>}
-          <button
-            type="submit"
-            className="submit-btn"
-            disabled={savingPassword || !currentPassword || !newPassword || !confirmPassword}
-          >
-            {savingPassword ? "Updating…" : "Change password"}
-          </button>
-        </form>
-      </div>
-
-      <div className="dashboard-card">
-        <h2><FiDownload aria-hidden="true" /> Your data</h2>
-        <p className="profile-danger-note">
-          Download everything on this page &mdash; progress, achievements, contest and submission
-          stats, recent activity &mdash; as a JSON file.
-        </p>
-        <button type="button" className="ghost-btn-light" onClick={handleExportData}>
-          <FiDownload aria-hidden="true" /> Download my data
-        </button>
-      </div>
-
-      <div className="dashboard-card profile-danger-card">
-        <h2>
-          <FiAlertTriangle aria-hidden="true" /> Danger zone
-        </h2>
-        <p className="profile-danger-note">
-          Permanently delete your account and everything in it -- every problem status, note,
-          bookmark, submission, and contest session. This can&rsquo;t be undone.
-        </p>
-        <button className="profile-danger-btn" onClick={() => setDeleteOpen(true)}>
-          Delete account
-        </button>
-      </div>
-
-      </>
-      )}
-
-      {deleteOpen && (
-        <div className="confirm-overlay" onMouseDown={closeDeleteDialog}>
-          <form
-            ref={deleteTrapRef}
-            className="confirm-panel profile-delete-panel"
-            onMouseDown={(e) => e.stopPropagation()}
-            onSubmit={handleDeleteAccount}
-            role="alertdialog"
-            aria-modal="true"
-            aria-label="Delete account"
-          >
-            <h3>
-              <FiAlertTriangle aria-hidden="true" /> Delete your account?
-            </h3>
-            <p>
-              This permanently deletes <strong>{user.email}</strong> and everything tied to it.
-              There&rsquo;s no undo. Enter your password to confirm.
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-2 flex items-center gap-1.5">
+              <FiDownload aria-hidden="true" /> Your data
+            </h2>
+            <p className="text-[13px] text-ink-soft mb-3">
+              Download everything on this page &mdash; progress, achievements, contest and submission stats, recent
+              activity &mdash; as a JSON file.
             </p>
-            <label className="auth-field">
-              <span>Current password</span>
-              <input
-                type="password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                autoComplete="current-password"
-                autoFocus
-              />
-            </label>
-            {deleteError && <p className="auth-error">{deleteError}</p>}
-            <div className="confirm-actions">
-              <button type="button" className="ghost-btn-light" onClick={closeDeleteDialog} disabled={deleting}>
-                Cancel
-              </button>
-              <button type="submit" className="confirm-danger-btn" disabled={deleting || !deletePassword}>
-                {deleting ? "Deleting…" : "Permanently delete"}
-              </button>
-            </div>
-          </form>
+            <Button variant="secondary" size="sm" icon={<FiDownload className="h-3.5 w-3.5" />} onClick={handleExportData}>
+              Download my data
+            </Button>
+          </Card>
+
+          <Card padding="lg" className="border-hard/30">
+            <h2 className="text-[14px] font-semibold text-hard mb-2 flex items-center gap-1.5">
+              <FiAlertTriangle aria-hidden="true" /> Danger zone
+            </h2>
+            <p className="text-[13px] text-ink-soft mb-3">
+              Permanently delete your account and everything in it -- every problem status, note, bookmark,
+              submission, and contest session. This can&rsquo;t be undone.
+            </p>
+            <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
+              Delete account
+            </Button>
+          </Card>
         </div>
       )}
+
+      <Modal
+        open={deleteOpen}
+        onClose={closeDeleteDialog}
+        title="Delete your account?"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={closeDeleteDialog} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button type="submit" form="delete-account-form" variant="danger" loading={deleting} disabled={!deletePassword}>
+              Permanently delete
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleDeleteAccount} id="delete-account-form">
+          <p className="text-[13.5px] text-ink-soft mb-4">
+            This permanently deletes <strong className="text-ink">{user.email}</strong> and everything tied to it.
+            There&rsquo;s no undo. Enter your password to confirm.
+          </p>
+          <Label>Current password</Label>
+          <Input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} autoComplete="current-password" autoFocus />
+          <FieldError>{deleteError}</FieldError>
+        </form>
+      </Modal>
     </div>
   );
 }

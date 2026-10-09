@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FiCheck, FiSearch } from "react-icons/fi";
 import { useFocusTrap } from "../hooks/useFocusTrap.js";
+import { Badge, difficultyTone } from "./ui/index.js";
 
 export default function CommandPalette({ open, onClose, problems, onSelect }) {
   const [query, setQuery] = useState("");
@@ -50,17 +51,17 @@ export default function CommandPalette({ open, onClose, problems, onSelect }) {
   };
 
   return (
-    <div className="cmdk-overlay" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] p-4 bg-ink/40 backdrop-blur-[2px]" onMouseDown={onClose}>
       <div
         ref={trapRef}
-        className="cmdk-panel"
         onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Jump to a problem"
+        className="w-full max-w-xl bg-paper-raised border border-line rounded-xl shadow-lg overflow-hidden flex flex-col max-h-[70vh]"
       >
-        <div className="cmdk-input-row">
-          <FiSearch aria-hidden="true" />
+        <div className="flex items-center gap-2.5 px-4 h-12 border-b border-line shrink-0">
+          <FiSearch className="text-ink-soft shrink-0" aria-hidden="true" />
           <input
             ref={inputRef}
             value={query}
@@ -69,40 +70,43 @@ export default function CommandPalette({ open, onClose, problems, onSelect }) {
             placeholder="Jump to a problem…"
             autoComplete="off"
             spellCheck={false}
+            className="flex-1 bg-transparent text-[14px] text-ink placeholder:text-ink-soft/70 outline-none"
           />
-          <kbd className="cmdk-esc">esc</kbd>
+          <kbd className="mono text-[10px] text-ink-soft bg-ink/5 rounded px-1.5 py-0.5 shrink-0">esc</kbd>
         </div>
 
-        <div className="cmdk-results" ref={listRef}>
-          {results.length === 0 && <div className="cmdk-empty">No problems match &ldquo;{query}&rdquo;.</div>}
+        <div ref={listRef} className="overflow-y-auto py-1.5">
+          {results.length === 0 && <div className="px-4 py-6 text-center text-[13px] text-ink-soft">No problems match &ldquo;{query}&rdquo;.</div>}
           {results.map((p, i) => (
             <button
               key={p.id}
-              className={`cmdk-result ${i === activeIndex ? "active" : ""}`}
               onMouseEnter={() => setActiveIndex(i)}
               onClick={() => onSelect(p.id)}
+              className={`flex items-center gap-2.5 w-full px-4 py-2 text-left ${i === activeIndex ? "bg-accent-soft" : ""}`}
             >
-              <span className={`pill diff-${p.difficulty.toLowerCase()}`}>{p.difficulty}</span>
-              <span className="cmdk-result-title">{p.title}</span>
-              <span className="cmdk-result-topic mono">{p.topicName}</span>
+              <Badge tone={difficultyTone(p.difficulty)} size="sm" className="shrink-0">
+                {p.difficulty}
+              </Badge>
+              <span className="text-[13.5px] text-ink truncate flex-1">{p.title}</span>
+              <span className="mono text-[11px] text-ink-soft shrink-0">{p.topicName}</span>
               {p.status === "DONE" && (
-                <span className="cmdk-result-done" aria-label="Done">
-                  <FiCheck />
+                <span className="text-done shrink-0" aria-label="Done">
+                  <FiCheck className="h-3.5 w-3.5" />
                 </span>
               )}
             </button>
           ))}
         </div>
 
-        <div className="cmdk-footer">
-          <span>
-            <kbd>↑</kbd>
-            <kbd>↓</kbd> navigate
+        <div className="flex items-center gap-4 px-4 h-9 border-t border-line text-[11px] text-ink-soft shrink-0">
+          <span className="flex items-center gap-1">
+            <kbd className="bg-ink/5 rounded px-1">↑</kbd>
+            <kbd className="bg-ink/5 rounded px-1">↓</kbd> navigate
           </span>
-          <span>
-            <kbd>↵</kbd> open
+          <span className="flex items-center gap-1">
+            <kbd className="bg-ink/5 rounded px-1">↵</kbd> open
           </span>
-          <span className="cmdk-footer-count mono">{problems.length} problems</span>
+          <span className="mono ml-auto">{problems.length} problems</span>
         </div>
       </div>
     </div>

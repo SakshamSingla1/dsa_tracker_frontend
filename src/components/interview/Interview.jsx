@@ -123,7 +123,7 @@ export default function Interview() {
   }
 
   return (
-    <div className="contest-home">
+    <div className="flex flex-wrap items-start gap-5">
       <InterviewSetup onStart={handleStart} starting={starting} error={startError} />
       <InterviewHistory sessions={history} onSelect={(id) => setInterviewId(id)} />
     </div>

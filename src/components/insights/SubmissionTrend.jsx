@@ -40,17 +40,17 @@ export default function SubmissionTrend({ dailyActivity, days }) {
   }
 
   return (
-    <div className="insights-trend">
-      <div className="insights-trend-stats">
+    <div>
+      <div className="flex gap-5 text-[13px] text-ink-soft mb-3">
         <span>
-          <strong className="mono">{total}</strong> submissions in the last {days} days
+          <strong className="mono text-ink">{total}</strong> submissions in the last {days} days
         </span>
         <span>
-          <strong className="mono">{activeDays}</strong> active days
+          <strong className="mono text-ink">{activeDays}</strong> active days
         </span>
       </div>
       <svg
-        className="insights-trend-svg"
+        className="w-full h-[120px]"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"
         role="img"
@@ -58,12 +58,12 @@ export default function SubmissionTrend({ dailyActivity, days }) {
       >
         <defs>
           <linearGradient id="trend-fill" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" />
             <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {total > 0 && <path d={areaPath} fill="url(#trend-fill)" stroke="none" />}
-        {total > 0 && <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+        <path d={areaPath} fill="url(#trend-fill)" stroke="none" />
+        <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );

@@ -34,10 +34,13 @@ export default function ContestTimerBanner({ contestSessionId }) {
   const urgent = remainingMs > 0 && remainingMs < 60_000;
 
   return (
-    <div className={`contest-solve-banner ${urgent ? "contest-timer-urgent" : ""}`}>
+    <div
+      className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12.5px] font-medium
+        ${urgent ? "bg-hard-soft text-hard" : "bg-accent-soft text-accent"}`}
+    >
       <GiFlame aria-hidden="true" />
       <span>Contest in progress</span>
-      <span className="mono contest-solve-banner-time">{formatRemaining(remainingMs)}</span>
+      <span className="mono">{formatRemaining(remainingMs)}</span>
     </div>
   );
 }

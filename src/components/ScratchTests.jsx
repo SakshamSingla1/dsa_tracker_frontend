@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiPlay, FiPlus, FiTrash2 } from "react-icons/fi";
 import { runCode } from "../api/client.js";
+import { Button, Textarea } from "./ui/index.js";
 
 function storageKey(problemId) {
   return `dsa-scratch-${problemId}`;
@@ -70,46 +71,35 @@ export default function ScratchTests({ problemId, language, code }) {
   };
 
   return (
-    <div className="scratch-tests">
+    <div className="space-y-3">
       {cases.map((c) => {
         const entry = results[c.id];
         return (
-          <div key={c.id} className="scratch-case">
-            <div className="scratch-case-header">
-              <span className="scratch-case-label">Case {cases.indexOf(c) + 1}</span>
-              <div className="scratch-case-actions">
+          <div key={c.id} className="rounded-lg border border-line p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[12.5px] font-medium text-ink">Case {cases.indexOf(c) + 1}</span>
+              <div className="flex items-center gap-1.5">
+                <Button variant="ghost" size="sm" icon={<FiPlay className="h-3 w-3" />} onClick={() => runOne(c.id, c.stdin)} disabled={runningId === c.id} aria-label="Run this case">
+                  {runningId === c.id ? "Running…" : "Run"}
+                </Button>
                 <button
-                  className="ghost-btn"
-                  onClick={() => runOne(c.id, c.stdin)}
-                  disabled={runningId === c.id}
-                  aria-label="Run this case"
-                >
-                  <FiPlay /> {runningId === c.id ? "Running…" : "Run"}
-                </button>
-                <button
-                  className="ghost-btn scratch-case-remove"
                   onClick={() => removeCase(c.id)}
                   disabled={cases.length <= 1}
                   aria-label="Remove this case"
+                  className="h-7 w-7 flex items-center justify-center rounded-md text-ink-soft hover:text-hard disabled:opacity-30"
                 >
-                  <FiTrash2 />
+                  <FiTrash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
-            <textarea
-              className="stdin-box"
-              placeholder="stdin for this case"
-              rows={2}
-              value={c.stdin}
-              onChange={(e) => updateStdin(c.id, e.target.value)}
-            />
-            {entry?.error && <div className="run-output run-error">{entry.error}</div>}
+            <Textarea placeholder="stdin for this case" rows={2} value={c.stdin} onChange={(e) => updateStdin(c.id, e.target.value)} />
+            {entry?.error && <div className="mt-2 rounded-lg bg-hard-soft text-hard text-[12.5px] px-3 py-2">{entry.error}</div>}
             {entry?.res && (
-              <div className="run-output">
-                <div className="run-output-header">
+              <div className="mt-2 rounded-lg bg-ink/[0.03] p-3">
+                <div className="flex items-center justify-between mb-1.5">
                   <span
-                    className={`run-status ${
-                      entry.res.compiled ? (entry.res.timedOut ? "run-status-timeout" : "run-status-ok") : "run-status-fail"
+                    className={`text-[12px] font-medium ${
+                      !entry.res.compiled ? "text-hard" : entry.res.timedOut ? "text-medium" : entry.res.exitCode === 0 ? "text-done" : "text-hard"
                     }`}
                   >
                     {!entry.res.compiled
@@ -120,18 +110,18 @@ export default function ScratchTests({ problemId, language, code }) {
                           ? "Ran successfully"
                           : `Exited with code ${entry.res.exitCode}`}
                   </span>
-                  <span className="run-duration mono">{entry.res.durationMs}ms</span>
+                  <span className="mono text-[11px] text-ink-soft">{entry.res.durationMs}ms</span>
                 </div>
                 {entry.res.stdout && (
                   <div>
-                    <div className="run-output-label">stdout</div>
-                    <pre className="run-output-block">{entry.res.stdout}</pre>
+                    <div className="text-[11px] text-ink-soft">stdout</div>
+                    <pre className="mono text-[12px] text-ink bg-paper rounded-md p-2 mt-0.5 overflow-x-auto whitespace-pre-wrap">{entry.res.stdout}</pre>
                   </div>
                 )}
                 {entry.res.stderr && (
-                  <div>
-                    <div className="run-output-label">stderr</div>
-                    <pre className="run-output-block run-output-stderr">{entry.res.stderr}</pre>
+                  <div className="mt-1.5">
+                    <div className="text-[11px] text-ink-soft">stderr</div>
+                    <pre className="mono text-[12px] text-hard bg-paper rounded-md p-2 mt-0.5 overflow-x-auto whitespace-pre-wrap">{entry.res.stderr}</pre>
                   </div>
                 )}
               </div>
@@ -139,9 +129,9 @@ export default function ScratchTests({ problemId, language, code }) {
           </div>
         );
       })}
-      <button className="ghost-btn scratch-add-btn" onClick={addCase}>
-        <FiPlus /> Add case
-      </button>
+      <Button variant="ghost" size="sm" icon={<FiPlus className="h-3.5 w-3.5" />} onClick={addCase}>
+        Add case
+      </Button>
     </div>
   );
 }

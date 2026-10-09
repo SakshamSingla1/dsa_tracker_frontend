@@ -16,12 +16,12 @@ export default function WeakSpots({ byTopic }) {
     .slice(0, 5);
 
   return (
-    <ul className="insights-weakspots">
+    <ul className="space-y-2">
       {ranked.map((t) => (
-        <li key={t.topicName} className="insights-weakspot-row">
-          <FiAlertTriangle className="insights-weakspot-icon" aria-hidden="true" />
-          <span className="insights-weakspot-name">{t.topicName}</span>
-          <span className="insights-weakspot-ratio mono">
+        <li key={t.topicName} className="flex items-center gap-2.5 text-[13px]">
+          <FiAlertTriangle className="text-medium shrink-0" aria-hidden="true" />
+          <span className="text-ink flex-1 truncate">{t.topicName}</span>
+          <span className="mono text-ink-soft shrink-0">
             {t.accepted}/{t.attempted} accepted
           </span>
         </li>

@@ -3,6 +3,12 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 const ToastContext = createContext(null);
 let nextId = 1;
 
+const TONE_CLASS = {
+  default: "bg-ink text-paper",
+  success: "bg-done text-white",
+  error: "bg-hard text-white",
+};
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timers = useRef(new Map());
@@ -39,9 +45,14 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="toast-stack" aria-live="polite">
+      <div className="fixed bottom-5 right-5 z-[100] flex flex-col items-end gap-2" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`toast toast-${t.tone}`} onClick={() => dismiss(t.id)}>
+          <div
+            key={t.id}
+            onClick={() => dismiss(t.id)}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-medium shadow-lg cursor-pointer
+              max-w-sm ${TONE_CLASS[t.tone] ?? TONE_CLASS.default}`}
+          >
             {t.message}
           </div>
         ))}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchAnalyticsSummary } from "../../api/client.js";
 import { LoadingState, ErrorState } from "../InlineState.jsx";
+import { Card } from "../ui/index.js";
 import SubmissionTrend from "./SubmissionTrend.jsx";
 import VerdictBreakdown from "./VerdictBreakdown.jsx";
 import LanguageUsage from "./LanguageUsage.jsx";
@@ -25,30 +26,26 @@ export default function Insights() {
   if (!summary) return <LoadingState label="Crunching your submissions…" />;
 
   return (
-    <div className="dashboard insights">
-      <div className="dashboard-top">
-        <div className="dashboard-card">
-          <h2>Activity</h2>
-          <SubmissionTrend dailyActivity={summary.dailyActivity} days={DAYS} />
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <Card padding="lg">
+        <h2 className="text-[14px] font-semibold text-ink mb-4">Activity</h2>
+        <SubmissionTrend dailyActivity={summary.dailyActivity} days={DAYS} />
+      </Card>
 
-        <div className="dashboard-card">
-          <h2>Verdicts</h2>
-          <VerdictBreakdown byVerdict={summary.byVerdict} acceptanceRate={summary.acceptanceRate} />
-        </div>
-      </div>
+      <Card padding="lg">
+        <h2 className="text-[14px] font-semibold text-ink mb-4">Verdicts</h2>
+        <VerdictBreakdown byVerdict={summary.byVerdict} acceptanceRate={summary.acceptanceRate} />
+      </Card>
 
-      <div className="dashboard-top">
-        <div className="dashboard-card">
-          <h2>Languages</h2>
-          <LanguageUsage byLanguage={summary.byLanguage} />
-        </div>
+      <Card padding="lg">
+        <h2 className="text-[14px] font-semibold text-ink mb-4">Languages</h2>
+        <LanguageUsage byLanguage={summary.byLanguage} />
+      </Card>
 
-        <div className="dashboard-card">
-          <h2>Weak spots</h2>
-          <WeakSpots byTopic={summary.byTopic} />
-        </div>
-      </div>
+      <Card padding="lg">
+        <h2 className="text-[14px] font-semibold text-ink mb-4">Weak spots</h2>
+        <WeakSpots byTopic={summary.byTopic} />
+      </Card>
     </div>
   );
 }

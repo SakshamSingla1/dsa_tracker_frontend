@@ -13,6 +13,7 @@ import ConfirmDialog from "./ConfirmDialog.jsx";
 import EditorSettings from "./EditorSettings.jsx";
 import ScratchTests from "./ScratchTests.jsx";
 import { useToast } from "./ToastProvider.jsx";
+import { Button, Card, SegmentedControl, Textarea } from "./ui/index.js";
 
 const EDITOR_PREFS_KEY = "dsa-editor-prefs";
 const DEFAULT_EDITOR_PREFS = { vimMode: false, fontSize: 14 };
@@ -65,6 +66,43 @@ function loadCode(problemId, language, title) {
   } catch {
     return LANGUAGES[language].template(title);
   }
+}
+
+function RunOutput({ result }) {
+  if (!result) return null;
+  return (
+    <div className="mt-3 rounded-lg bg-ink/[0.03] p-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span
+          className={`text-[12.5px] font-medium ${
+            !result.compiled ? "text-hard" : result.timedOut ? "text-medium" : result.exitCode === 0 ? "text-done" : "text-hard"
+          }`}
+        >
+          {!result.compiled
+            ? "Compile error"
+            : result.timedOut
+              ? "Timed out"
+              : result.exitCode === 0
+                ? "Ran successfully"
+                : `Exited with code ${result.exitCode}`}
+        </span>
+        <span className="mono text-[11px] text-ink-soft">{result.durationMs}ms</span>
+      </div>
+      {result.stdout && (
+        <div>
+          <div className="text-[11px] text-ink-soft">stdout</div>
+          <pre className="mono text-[12px] text-ink bg-paper rounded-md p-2 mt-0.5 overflow-x-auto whitespace-pre-wrap">{result.stdout}</pre>
+        </div>
+      )}
+      {result.stderr && (
+        <div className="mt-1.5">
+          <div className="text-[11px] text-ink-soft">stderr</div>
+          <pre className="mono text-[12px] text-hard bg-paper rounded-md p-2 mt-0.5 overflow-x-auto whitespace-pre-wrap">{result.stderr}</pre>
+        </div>
+      )}
+      {!result.stdout && !result.stderr && <div className="text-[12.5px] text-ink-soft/70">No output.</div>}
+    </div>
+  );
 }
 
 export default function CodeEditor({ problem, height = "280px", onSubmitted, contestSessionId }) {
@@ -231,54 +269,44 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
   );
 
   return (
-    <div className="code-editor">
-      <div className="code-editor-toolbar">
-        <div className="language-picker" role="group" aria-label="Language">
-          {LANGUAGE_ORDER.map((key) => (
-            <button
-              key={key}
-              className={`language-option ${language === key ? "active" : ""}`}
-              onClick={() => switchLanguage(key)}
-            >
-              {LANGUAGES[key].label}
-            </button>
-          ))}
-        </div>
-        <div className="code-editor-actions">
+    <Card padding="none" className="overflow-hidden">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-line">
+        <SegmentedControl
+          options={LANGUAGE_ORDER.map((key) => ({ value: key, label: LANGUAGES[key].label }))}
+          value={language}
+          onChange={switchLanguage}
+        />
+        <div className="flex items-center gap-1.5 ml-auto">
           <EditorSettings prefs={editorPrefs} onChange={setEditorPrefs} vimAvailable />
-          <button className="ghost-btn" onClick={() => setShowStdin((v) => !v)}>
+          <Button variant="ghost" size="sm" onClick={() => setShowStdin((v) => !v)}>
             {showStdin ? "Hide stdin" : "Add stdin"}
-          </button>
-          <button className="ghost-btn" onClick={() => setScratchOpen((v) => !v)}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setScratchOpen((v) => !v)}>
             {scratchOpen ? "Hide scratch tests" : "Scratch tests"}
-          </button>
-          <button className="ghost-btn" onClick={handleReset}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleReset}>
             Reset
-          </button>
-          <span className="code-editor-actions-divider" aria-hidden="true" />
-          <button
-            className="run-btn"
-            onClick={handleRun}
-            disabled={running}
-            title={hasTests ? undefined : `${modKey}+Enter`}
-          >
+          </Button>
+          <span className="w-px h-5 bg-line" aria-hidden="true" />
+          <Button variant="secondary" size="sm" onClick={handleRun} disabled={running} title={hasTests ? undefined : `${modKey}+Enter`}>
             {running ? "Running…" : "Run ▸"}
-            {!hasTests && <kbd className="shortcut-kbd">{modKey}+Enter</kbd>}
-          </button>
+          </Button>
         </div>
       </div>
 
-      {current.hint && <div className="code-editor-hint">{current.hint}</div>}
+      <div className="px-3 pt-2.5">
+        {current.hint && <div className="text-[12px] text-ink-soft mb-2">{current.hint}</div>}
 
-      {showStdin && (
-        <textarea
-          className="stdin-box"
-          placeholder="Input fed to stdin, if your program reads any"
-          rows={2}
-          value={stdin}
-          onChange={(e) => setStdin(e.target.value)}
-        />
-      )}
+        {showStdin && (
+          <Textarea
+            placeholder="Input fed to stdin, if your program reads any"
+            rows={2}
+            value={stdin}
+            onChange={(e) => setStdin(e.target.value)}
+            className="mb-2.5"
+          />
+        )}
+      </div>
 
       <CodeMirror
         // Remounts on a language switch: `value` and `extensions` (the language mode) both
@@ -295,64 +323,36 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
         basicSetup={{ tabSize: 4 }}
       />
 
-      {scratchOpen && (
-        <div className="scratch-tests-panel">
-          <div className="scratch-tests-title">Scratch test cases</div>
-          <ScratchTests problemId={problem.id} language={language} code={code} />
-        </div>
-      )}
-
-      <div className="judge-toolbar">
-        {hasTests ? (
-          <>
-            <button className="ghost-btn" onClick={handleRunTests} disabled={judging !== null}>
-              {judging === "run" ? "Running tests…" : "Run tests ▸"}
-              <kbd className="shortcut-kbd">{modKey}+Enter</kbd>
-            </button>
-            <button className="submit-btn" onClick={handleSubmit} disabled={judging !== null}>
-              {judging === "submit" ? "Submitting…" : "Submit"}
-              <kbd className="shortcut-kbd">{modKey}+Shift+Enter</kbd>
-            </button>
-          </>
-        ) : (
-          <span className="judge-unavailable">No automated tests for this problem yet — use Run above with your own input.</span>
-        )}
-      </div>
-
-      {runError && <div className="run-output run-error">{runError}</div>}
-      {judgeError && <div className="run-output run-error">{judgeError}</div>}
-
-      {result && (
-        <div className="run-output">
-          <div className="run-output-header">
-            <span className={`run-status ${result.compiled ? (result.timedOut ? "run-status-timeout" : "run-status-ok") : "run-status-fail"}`}>
-              {!result.compiled
-                ? "Compile error"
-                : result.timedOut
-                  ? "Timed out"
-                  : result.exitCode === 0
-                    ? "Ran successfully"
-                    : `Exited with code ${result.exitCode}`}
-            </span>
-            <span className="run-duration mono">{result.durationMs}ms</span>
+      <div className="p-3 space-y-3">
+        {scratchOpen && (
+          <div className="rounded-lg border border-line p-3">
+            <div className="text-[12.5px] font-semibold text-ink mb-3">Scratch test cases</div>
+            <ScratchTests problemId={problem.id} language={language} code={code} />
           </div>
-          {result.stdout && (
-            <div>
-              <div className="run-output-label">stdout</div>
-              <pre className="run-output-block">{result.stdout}</pre>
-            </div>
-          )}
-          {result.stderr && (
-            <div>
-              <div className="run-output-label">stderr</div>
-              <pre className="run-output-block run-output-stderr">{result.stderr}</pre>
-            </div>
-          )}
-          {!result.stdout && !result.stderr && <div className="run-output-empty">No output.</div>}
-        </div>
-      )}
+        )}
 
-      <JudgeResult result={judgeResult} code={code} language={language} />
+        <div className="flex items-center gap-2">
+          {hasTests ? (
+            <>
+              <Button variant="secondary" onClick={handleRunTests} disabled={judging !== null}>
+                {judging === "run" ? "Running tests…" : "Run tests ▸"}
+              </Button>
+              <Button variant="primary" onClick={handleSubmit} disabled={judging !== null}>
+                {judging === "submit" ? "Submitting…" : "Submit"}
+              </Button>
+            </>
+          ) : (
+            <span className="text-[12.5px] text-ink-soft">No automated tests for this problem yet — use Run above with your own input.</span>
+          )}
+        </div>
+
+        {runError && <div className="rounded-lg bg-hard-soft text-hard text-[13px] px-3 py-2">{runError}</div>}
+        {judgeError && <div className="rounded-lg bg-hard-soft text-hard text-[13px] px-3 py-2">{judgeError}</div>}
+
+        <RunOutput result={result} />
+
+        <JudgeResult result={judgeResult} code={code} language={language} />
+      </div>
 
       <ConfirmDialog
         open={resetConfirmOpen}
@@ -362,6 +362,6 @@ export default function CodeEditor({ problem, height = "280px", onSubmitted, con
         onConfirm={confirmReset}
         onCancel={() => setResetConfirmOpen(false)}
       />
-    </div>
+    </Card>
   );
 }

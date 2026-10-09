@@ -10,6 +10,16 @@ import CoachNote from "./CoachNote.jsx";
 import { computeSheetStats } from "./date-utils.js";
 import { fetchProgressSummary } from "../../api/client.js";
 import { LoadingState, ErrorState } from "../InlineState.jsx";
+import { Card, Tabs } from "../ui/index.js";
+
+function StatTile({ value, label }) {
+  return (
+    <div className="flex flex-col items-center">
+      <AnimatedNumber value={value} className="mono text-2xl font-bold text-ink" />
+      <span className="text-[12px] text-ink-soft">{label}</span>
+    </div>
+  );
+}
 
 export default function Dashboard({ topics, onSolve }) {
   // "all" pools every sheet's progress so switching the active sheet doesn't reset your
@@ -35,15 +45,15 @@ export default function Dashboard({ topics, onSolve }) {
   const stats = useMemo(() => (activeTopics ? computeSheetStats(activeTopics) : null), [activeTopics]);
 
   return (
-    <div className="dashboard">
-      <div className="view-switch dashboard-scope-switch" role="group" aria-label="Stats scope">
-        <button className={`view-tab ${scope === "all" ? "active" : ""}`} onClick={() => setScope("all")}>
-          All sheets
-        </button>
-        <button className={`view-tab ${scope === "sheet" ? "active" : ""}`} onClick={() => setScope("sheet")}>
-          This sheet
-        </button>
-      </div>
+    <div className="space-y-5">
+      <Tabs
+        items={[
+          { value: "all", label: "All sheets" },
+          { value: "sheet", label: "This sheet" },
+        ]}
+        value={scope}
+        onChange={setScope}
+      />
 
       {scope === "all" && allTopicsError && <ErrorState message={allTopicsError} onRetry={loadAllTopics} />}
 
@@ -51,56 +61,45 @@ export default function Dashboard({ topics, onSolve }) {
         <LoadingState label="Crunching your stats…" />
       ) : (
         <>
-          <div className="dashboard-top">
-            <div className="dashboard-card dashboard-ring-card">
-              <h2>Overall progress</h2>
-              <ProgressRing done={stats.done} total={stats.total} />
-              <div className="dashboard-stat-row">
-                <div className="dashboard-stat-tile">
-                  <AnimatedNumber value={stats.total} />
-                  <span>Total</span>
-                </div>
-                <div className="dashboard-stat-tile">
-                  <AnimatedNumber value={stats.done} />
-                  <span>Done</span>
-                </div>
-                <div className="dashboard-stat-tile">
-                  <AnimatedNumber value={stats.revise} />
-                  <span>Revise</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-5">Overall progress</h2>
+              <div className="flex flex-col items-center gap-5">
+                <ProgressRing done={stats.done} total={stats.total} />
+                <div className="flex gap-8">
+                  <StatTile value={stats.total} label="Total" />
+                  <StatTile value={stats.done} label="Done" />
+                  <StatTile value={stats.revise} label="Revise" />
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="dashboard-card">
-              <h2>By difficulty</h2>
+            <Card padding="lg">
+              <h2 className="text-[14px] font-semibold text-ink mb-5">By difficulty</h2>
               <DifficultyBreakdown byDifficulty={stats.byDifficulty} />
-            </div>
+            </Card>
           </div>
 
-          <div className="dashboard-card">
-            <h2>Daily activity</h2>
-            <StreakCalendar
-              dayCounts={stats.dayCounts}
-              currentStreak={stats.currentStreak}
-              longestStreak={stats.longestStreak}
-            />
-          </div>
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-5">Daily activity</h2>
+            <StreakCalendar dayCounts={stats.dayCounts} currentStreak={stats.currentStreak} longestStreak={stats.longestStreak} />
+          </Card>
 
-          <div className="dashboard-card">
-            <h2>Recommended for you</h2>
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4">Recommended for you</h2>
             <CoachNote />
             <Recommendations onSolve={onSolve} />
-          </div>
+          </Card>
 
-          <div className="dashboard-card">
-            <h2>Achievements</h2>
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4">Achievements</h2>
             <Achievements stats={stats} />
-          </div>
+          </Card>
 
-          <div className="dashboard-card">
-            <h2>By topic</h2>
+          <Card padding="lg">
+            <h2 className="text-[14px] font-semibold text-ink mb-4">By topic</h2>
             <TopicBars topics={activeTopics} />
-          </div>
+          </Card>
         </>
       )}
     </div>

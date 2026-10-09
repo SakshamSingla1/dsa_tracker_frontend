@@ -5,7 +5,7 @@ import { computeSheetStats } from "./dashboard/date-utils.js";
 import { LoadingState, ErrorState } from "./InlineState.jsx";
 import { ACCENTS, DEFAULT_ACCENT } from "../theme/accents.js";
 import { initials, computeLevel } from "./profileIdentity.js";
-import { useFocusTrap } from "../hooks/useFocusTrap.js";
+import { Button, Modal } from "./ui/index.js";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -17,19 +17,19 @@ const HEIGHT = 630;
 // dark-mode hex for their chosen accent (see draw()) rather than the light-mode `swatch` value,
 // which is what the picker UI shows but not what's rendered anywhere in the app's dark theme.
 const PALETTE = {
-  bgFrom: "#14161c",
-  bgTo: "#1b1e24",
-  ink: "#e9eae4",
-  inkSoft: "#9ba398",
-  easy: "#4fcba3",
-  medium: "#e3b45c",
-  hard: "#e58a7c",
-  line: "#2c3038",
+  bgFrom: "#0a0a0b",
+  bgTo: "#16161a",
+  ink: "#f4f4f5",
+  inkSoft: "#9ca3af",
+  easy: "#4ade80",
+  medium: "#fbbf24",
+  hard: "#f87171",
+  line: "#27272a",
 };
 
 function hexToRgb(hex) {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
-  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [148, 152, 255];
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [37, 99, 235];
 }
 
 function draw(canvas, { stats, user, accent }) {
@@ -69,7 +69,7 @@ function draw(canvas, { stats, user, accent }) {
   ctx.strokeRect(6, 6, WIDTH - 12, HEIGHT - 12);
 
   ctx.fillStyle = PALETTE.inkSoft;
-  ctx.font = "600 20px 'IBM Plex Sans', sans-serif";
+  ctx.font = "600 20px 'Inter', sans-serif";
   ctx.fillText("DSA PROBLEM TRACKER · OVERALL PROGRESS", 64, 70);
 
   // Avatar circle + initials.
@@ -80,7 +80,7 @@ function draw(canvas, { stats, user, accent }) {
   ctx.fillStyle = accentHex;
   ctx.fill();
   ctx.fillStyle = "#fff";
-  ctx.font = "700 30px 'IBM Plex Mono', monospace";
+  ctx.font = "700 30px 'JetBrains Mono', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(initials(user?.displayName || user?.email) || "?", avatarCx, avatarCy + 2);
@@ -89,11 +89,11 @@ function draw(canvas, { stats, user, accent }) {
 
   // Name + level badge.
   ctx.fillStyle = PALETTE.ink;
-  ctx.font = "700 40px Georgia, serif";
+  ctx.font = "800 40px 'Inter', sans-serif";
   ctx.fillText(user?.displayName || "Anonymous solver", 156, 140);
 
   const level = computeLevel(stats.done).title;
-  ctx.font = "700 20px 'IBM Plex Sans', sans-serif";
+  ctx.font = "700 20px 'Inter', sans-serif";
   const levelWidth = ctx.measureText(level).width;
   const badgeX = 156;
   const badgeY = 158;
@@ -106,19 +106,19 @@ function draw(canvas, { stats, user, accent }) {
 
   // Big solved/total number.
   ctx.fillStyle = PALETTE.ink;
-  ctx.font = "800 120px 'IBM Plex Mono', monospace";
+  ctx.font = "800 120px 'JetBrains Mono', monospace";
   ctx.fillText(`${stats.done}`, 64, 350);
   const doneWidth = ctx.measureText(`${stats.done}`).width;
   ctx.fillStyle = PALETTE.inkSoft;
-  ctx.font = "500 46px 'IBM Plex Mono', monospace";
+  ctx.font = "500 46px 'JetBrains Mono', monospace";
   ctx.fillText(`/ ${stats.total} solved`, 64 + doneWidth + 16, 350);
 
   // Streak badge.
   ctx.fillStyle = accentHex;
-  ctx.font = "700 32px 'IBM Plex Mono', monospace";
+  ctx.font = "700 32px 'JetBrains Mono', monospace";
   ctx.fillText(`\u{1F525} ${stats.currentStreak}-day streak`, 64, 418);
   ctx.fillStyle = PALETTE.inkSoft;
-  ctx.font = "500 22px 'IBM Plex Sans', sans-serif";
+  ctx.font = "500 22px 'Inter', sans-serif";
   ctx.fillText(`longest streak ${stats.longestStreak} days · ${stats.bookmarked} bookmarked`, 64, 450);
 
   // Difficulty breakdown bars.
@@ -133,7 +133,7 @@ function draw(canvas, { stats, user, accent }) {
     const x = 64 + i * barGap;
     const bd = stats.byDifficulty?.[d.key] ?? { done: 0, total: 0 };
     ctx.fillStyle = PALETTE.inkSoft;
-    ctx.font = "600 18px 'IBM Plex Sans', sans-serif";
+    ctx.font = "600 18px 'Inter', sans-serif";
     ctx.fillText(d.label.toUpperCase(), x, barY);
     ctx.fillStyle = PALETTE.line;
     ctx.fillRect(x, barY + 14, 160, 10);
@@ -141,12 +141,12 @@ function draw(canvas, { stats, user, accent }) {
     ctx.fillStyle = d.color;
     ctx.fillRect(x, barY + 14, 160 * pct, 10);
     ctx.fillStyle = PALETTE.ink;
-    ctx.font = "600 16px 'IBM Plex Mono', monospace";
+    ctx.font = "600 16px 'JetBrains Mono', monospace";
     ctx.fillText(`${bd.done}/${bd.total}`, x, barY + 46);
   });
 
   ctx.fillStyle = PALETTE.inkSoft;
-  ctx.font = "500 18px 'IBM Plex Sans', sans-serif";
+  ctx.font = "500 18px 'Inter', sans-serif";
   ctx.textAlign = "right";
   ctx.fillText("built with the DSA Problem Tracker", WIDTH - 64, HEIGHT - 40);
   ctx.textAlign = "left";
@@ -154,7 +154,6 @@ function draw(canvas, { stats, user, accent }) {
 
 export default function ShareCard({ user, accent, onClose }) {
   const canvasRef = useRef(null);
-  const trapRef = useFocusTrap(true);
   const [copyState, setCopyState] = useState("idle"); // idle | copied | unsupported
   const [allStats, setAllStats] = useState(null);
   const [error, setError] = useState(null);
@@ -173,14 +172,6 @@ export default function ShareCard({ user, accent, onClose }) {
   useEffect(() => {
     if (canvasRef.current && allStats) draw(canvasRef.current, { stats: allStats, user, accent });
   }, [allStats, user, accent]);
-
-  useEffect(() => {
-    const onEscape = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onEscape);
-    return () => window.removeEventListener("keydown", onEscape);
-  }, [onClose]);
 
   const toBlob = () => new Promise((resolve) => canvasRef.current.toBlob(resolve));
 
@@ -223,49 +214,36 @@ export default function ShareCard({ user, accent, onClose }) {
   };
 
   return (
-    <div className="confirm-overlay" onMouseDown={onClose}>
-      <div
-        ref={trapRef}
-        className="share-card-panel glass-panel"
-        onMouseDown={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Share your progress"
-      >
-        <h3>Share your progress</h3>
-        <div className="share-card-canvas-wrap">
-          {error ? (
-            <ErrorState message={error} onRetry={load} />
-          ) : !allStats ? (
-            <LoadingState label="Building your card…" />
-          ) : (
-            <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="share-card-canvas" />
-          )}
-        </div>
-        <div className="share-card-actions">
-          <button className="ghost-btn-light" onClick={onClose}>
-            Close
-          </button>
-          {allStats && clipboardSupported && (
-            <button className="ghost-btn" onClick={handleCopy}>
-              <FiCopy aria-hidden="true" /> {copyState === "copied" ? "Copied!" : "Copy image"}
-            </button>
-          )}
-          {allStats && nativeShareSupported && (
-            <button className="ghost-btn" onClick={handleNativeShare}>
-              <FiShare2 aria-hidden="true" /> Share&hellip;
-            </button>
-          )}
-          {allStats && (
-            <button className="submit-btn share-card-download" onClick={handleDownload}>
-              <FiDownload aria-hidden="true" /> Download PNG
-            </button>
-          )}
-        </div>
-        {copyState === "unsupported" && (
-          <p className="share-card-hint">Copy-to-clipboard isn't supported in this browser — try downloading instead.</p>
+    <Modal open onClose={onClose} title="Share your progress" size="lg">
+      <div className="rounded-lg overflow-hidden bg-ink/[0.03] flex items-center justify-center min-h-[200px]">
+        {error ? (
+          <ErrorState message={error} onRetry={load} />
+        ) : !allStats ? (
+          <LoadingState label="Building your card…" />
+        ) : (
+          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="w-full h-auto" />
         )}
       </div>
-    </div>
+      <div className="flex flex-wrap items-center gap-2 mt-4">
+        {allStats && clipboardSupported && (
+          <Button variant="secondary" size="sm" icon={<FiCopy className="h-3.5 w-3.5" />} onClick={handleCopy}>
+            {copyState === "copied" ? "Copied!" : "Copy image"}
+          </Button>
+        )}
+        {allStats && nativeShareSupported && (
+          <Button variant="secondary" size="sm" icon={<FiShare2 className="h-3.5 w-3.5" />} onClick={handleNativeShare}>
+            Share&hellip;
+          </Button>
+        )}
+        {allStats && (
+          <Button variant="primary" size="sm" icon={<FiDownload className="h-3.5 w-3.5" />} onClick={handleDownload}>
+            Download PNG
+          </Button>
+        )}
+      </div>
+      {copyState === "unsupported" && (
+        <p className="text-[12px] text-ink-soft mt-2">Copy-to-clipboard isn't supported in this browser — try downloading instead.</p>
+      )}
+    </Modal>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { GiFlame } from "react-icons/gi";
 import { dateKey, addDays, parseKey } from "./date-utils.js";
 import AnimatedNumber from "./AnimatedNumber.jsx";
+import { Button } from "../ui/index.js";
 
 const CELL = 16;
 const GAP = 4;
@@ -11,6 +12,8 @@ const MAX_WEEKS = 53; // a full year, GitHub-style
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_LABELS = [null, "Mon", null, "Wed", null, "Fri", null];
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
+
+const LEVEL_CLASS = ["bg-ink/[0.06]", "bg-done/30", "bg-done/55", "bg-done/80", "bg-done"];
 
 function levelFor(count) {
   if (count <= 0) return 0;
@@ -117,76 +120,89 @@ export default function StreakCalendar({ dayCounts, currentStreak, longestStreak
   };
 
   return (
-    <div className="streak-calendar" ref={calRef}>
-      <div className="streak-stats">
-        <div className="streak-stat">
-          <AnimatedNumber value={currentStreak} className="streak-stat-value mono" />
-          <span className="streak-stat-label">day streak</span>
+    <div className="relative" ref={calRef}>
+      <div className="flex flex-wrap gap-6 mb-4">
+        <div className="flex flex-col">
+          <AnimatedNumber value={currentStreak} className="mono text-xl font-bold text-ink" />
+          <span className="text-[12px] text-ink-soft">day streak</span>
         </div>
-        <div className="streak-stat">
-          <AnimatedNumber value={longestStreak} className="streak-stat-value mono" />
-          <span className="streak-stat-label">longest streak</span>
+        <div className="flex flex-col">
+          <AnimatedNumber value={longestStreak} className="mono text-xl font-bold text-ink" />
+          <span className="text-[12px] text-ink-soft">longest streak</span>
         </div>
-        <div className="streak-stat">
-          <AnimatedNumber value={activeDays} className="streak-stat-value mono" />
-          <span className="streak-stat-label">active days</span>
+        <div className="flex flex-col">
+          <AnimatedNumber value={activeDays} className="mono text-xl font-bold text-ink" />
+          <span className="text-[12px] text-ink-soft">active days</span>
         </div>
-        <div className="streak-stat">
-          <AnimatedNumber value={solvedThisMonth} className="streak-stat-value mono" />
-          <span className="streak-stat-label">solved this month</span>
+        <div className="flex flex-col">
+          <AnimatedNumber value={solvedThisMonth} className="mono text-xl font-bold text-ink" />
+          <span className="text-[12px] text-ink-soft">solved this month</span>
         </div>
       </div>
 
-      <div className="streak-nav">
-        <button className="streak-nav-btn" onClick={() => setYearsBack((y) => y + 1)} title="Previous year">
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={() => setYearsBack((y) => y + 1)}
+          title="Previous year"
+          className="h-7 w-7 flex items-center justify-center rounded-md border border-line text-ink-soft hover:text-ink hover:border-line-strong"
+        >
           ‹
         </button>
-        <span className="streak-range mono">{rangeLabel}</span>
-        <button className="streak-nav-btn" onClick={() => setYearsBack((y) => Math.max(0, y - 1))} disabled={yearsBack === 0} title="Next year">
+        <span className="mono text-[12px] text-ink-soft">{rangeLabel}</span>
+        <button
+          onClick={() => setYearsBack((y) => Math.max(0, y - 1))}
+          disabled={yearsBack === 0}
+          title="Next year"
+          className="h-7 w-7 flex items-center justify-center rounded-md border border-line text-ink-soft hover:text-ink hover:border-line-strong disabled:opacity-40 disabled:pointer-events-none"
+        >
           ›
         </button>
         {yearsBack > 0 && (
-          <button className="streak-today-btn" onClick={() => setYearsBack(0)}>
+          <Button variant="ghost" size="sm" onClick={() => setYearsBack(0)}>
             Jump to today
-          </button>
+          </Button>
         )}
       </div>
 
-      <div className="streak-scroll" ref={wrapRef}>
-        <div className="streak-grid-area">
-          <div className="streak-day-labels">
+      <div className="overflow-x-auto" ref={wrapRef}>
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-1 pt-[18px] shrink-0">
             {DAY_LABELS.map((label, i) => (
-              <span key={i}>{label}</span>
+              <span key={i} className="h-4 text-[10px] leading-4 text-ink-soft">
+                {label}
+              </span>
             ))}
           </div>
 
-          <div className="streak-grid-col">
-            <div className="streak-months" style={{ width: (weekCount + 1) * COL_WIDTH }}>
+          <div className="flex flex-col">
+            <div className="relative h-[16px]" style={{ width: (weekCount + 1) * COL_WIDTH }}>
               {monthLabels.map(({ week, label }) => (
-                <span key={week} style={{ left: week * COL_WIDTH }}>
+                <span key={week} className="absolute top-0 text-[10px] text-ink-soft" style={{ left: week * COL_WIDTH }}>
                   {label}
                 </span>
               ))}
             </div>
 
-            <div className="streak-grid" role="img" aria-label={`Daily problems solved, ${rangeLabel}`} onMouseLeave={() => setHover(null)}>
+            <div
+              className="flex gap-1"
+              role="img"
+              aria-label={`Daily problems solved, ${rangeLabel}`}
+              onMouseLeave={() => setHover(null)}
+            >
               {weeks.map((week, i) => (
-                <div className="streak-week" key={i}>
+                <div key={i} className="flex flex-col gap-1">
                   {week.map((day) => {
                     const tooltip =
                       day.count === null ? null : `${day.count} solved — ${DATE_FMT.format(parseKey(day.key))}`;
+                    const empty = day.count === null;
                     return (
                       <div
                         key={day.key}
-                        className={[
-                          "streak-cell",
-                          day.count === null ? "streak-cell-empty" : `streak-level-${levelFor(day.count)}`,
-                          day.isToday ? "streak-cell-today" : "",
-                          streakKeys.has(day.key) ? "streak-cell-active" : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
                         onMouseEnter={(e) => showTooltip(e, tooltip)}
+                        className={`h-4 w-4 rounded-[3px]
+                          ${empty ? "bg-transparent" : LEVEL_CLASS[levelFor(day.count)]}
+                          ${day.isToday ? "ring-1 ring-accent ring-offset-1 ring-offset-paper-raised" : ""}
+                          ${streakKeys.has(day.key) ? "outline outline-1 outline-medium" : ""}`}
                       />
                     );
                   })}
@@ -198,20 +214,23 @@ export default function StreakCalendar({ dayCounts, currentStreak, longestStreak
       </div>
 
       {hover && (
-        <div className="streak-tooltip" style={{ left: hover.x, top: hover.y }}>
+        <div
+          className="absolute z-10 -translate-x-1/2 -translate-y-full -mt-2 px-2 py-1 rounded-md bg-ink text-paper text-[11px] whitespace-nowrap pointer-events-none"
+          style={{ left: hover.x, top: hover.y }}
+        >
           {hover.text}
         </div>
       )}
 
-      <div className="streak-legend">
+      <div className="flex items-center gap-1.5 mt-3 text-[11px] text-ink-soft">
         <span>Less</span>
         {[0, 1, 2, 3, 4].map((lvl) => (
-          <div key={lvl} className={`streak-cell streak-level-${lvl}`} />
+          <div key={lvl} className={`h-3 w-3 rounded-[3px] ${LEVEL_CLASS[lvl]}`} />
         ))}
         <span>More</span>
         {currentStreak > 0 && (
-          <span className="streak-legend-flame">
-            <GiFlame className="icon-flame" /> current streak highlighted
+          <span className="flex items-center gap-1 ml-2">
+            <GiFlame className="text-medium" /> current streak outlined
           </span>
         )}
       </div>

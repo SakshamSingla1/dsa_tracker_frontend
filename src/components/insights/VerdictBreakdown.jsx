@@ -10,10 +10,17 @@ const VERDICT_META = {
 
 const ORDER = ["ACCEPTED", "WRONG_ANSWER", "RUNTIME_ERROR", "COMPILE_ERROR", "TIME_LIMIT_EXCEEDED"];
 
-function acceptanceTier(rate) {
-  if (rate >= 0.7) return "good";
-  if (rate >= 0.4) return "mid";
-  return "low";
+// Full literal class strings (not interpolated) so Tailwind's static scanner can find them.
+const ACCEPTANCE_CLASS = {
+  done: "bg-done-soft text-done",
+  medium: "bg-medium-soft text-medium",
+  hard: "bg-hard-soft text-hard",
+};
+
+function acceptanceTone(rate) {
+  if (rate >= 0.7) return "done";
+  if (rate >= 0.4) return "medium";
+  return "hard";
 }
 
 export default function VerdictBreakdown({ byVerdict, acceptanceRate }) {
@@ -24,9 +31,11 @@ export default function VerdictBreakdown({ byVerdict, acceptanceRate }) {
     return <InsightsEmptyState message="No submissions yet -- submit a solution to see your verdict mix." />;
   }
 
+  const tone = acceptanceTone(acceptanceRate);
+
   return (
-    <div className="insights-bars">
-      <div className={`chip insights-acceptance-chip tier-${acceptanceTier(acceptanceRate)} mono`}>
+    <div className="space-y-3">
+      <div className={`inline-flex mono text-[13px] font-semibold rounded-pill px-3 py-1 ${ACCEPTANCE_CLASS[tone]}`}>
         {Math.round(acceptanceRate * 100)}% acceptance rate
       </div>
       {ORDER.filter((key) => byVerdict[key]).map((key) => {
@@ -34,15 +43,15 @@ export default function VerdictBreakdown({ byVerdict, acceptanceRate }) {
         const meta = VERDICT_META[key];
         const pct = (count / max) * 100;
         return (
-          <div className="topic-bar-row" key={key}>
-            <span className="topic-bar-name insights-verdict-label">
-              <span className="insights-verdict-dot" style={{ background: meta.color }} aria-hidden="true" />
+          <div key={key} className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5 w-32 shrink-0 text-[12.5px] text-ink">
+              <span className="h-2 w-2 rounded-full shrink-0" style={{ background: meta.color }} aria-hidden="true" />
               {meta.label}
             </span>
-            <div className="topic-bar-track">
-              <div className="topic-bar-fill" style={{ width: `${pct}%`, background: meta.color }} />
+            <div className="w-full h-2 rounded-pill bg-ink/8 overflow-hidden">
+              <div className="h-full rounded-pill" style={{ width: `${pct}%`, background: meta.color }} />
             </div>
-            <span className="topic-bar-count mono">{count}</span>
+            <span className="mono text-[12.5px] text-ink-soft w-8 text-right shrink-0">{count}</span>
           </div>
         );
       })}

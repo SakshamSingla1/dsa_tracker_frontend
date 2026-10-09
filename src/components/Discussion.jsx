@@ -3,6 +3,7 @@ import { FiTrash2 } from "react-icons/fi";
 import { fetchComments, postComment, deleteComment } from "../api/client.js";
 import { LoadingState, ErrorState } from "./InlineState.jsx";
 import { useToast } from "./ToastProvider.jsx";
+import { Button, Textarea } from "./ui/index.js";
 
 // Small enough to duplicate rather than export an internal from SubmissionHistory.jsx for it.
 function timeAgo(iso) {
@@ -58,35 +59,35 @@ export default function Discussion({ problemId }) {
   if (comments === null) return <LoadingState label="Loading discussion…" />;
 
   return (
-    <div className="discussion">
+    <div className="space-y-3">
       {comments.length === 0 ? (
-        <div className="discussion-empty">No discussion yet -- be the first to share your approach.</div>
+        <div className="text-[13px] text-ink-soft">No discussion yet -- be the first to share your approach.</div>
       ) : (
-        <div className="discussion-list" role="list" aria-label="Discussion">
+        <div className="space-y-3" role="list" aria-label="Discussion">
           {comments.map((c) => (
-            <div className="discussion-row" role="listitem" key={c.id}>
-              <div className="discussion-row-header">
-                <span className="discussion-author">{c.authorName}</span>
-                <span className="discussion-time mono">{timeAgo(c.createdAt)}</span>
+            <div key={c.id} role="listitem" className="rounded-lg bg-ink/[0.03] px-3 py-2.5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[12.5px] font-medium text-ink">{c.authorName}</span>
+                <span className="mono text-[11px] text-ink-soft">{timeAgo(c.createdAt)}</span>
                 {c.mine && (
                   <button
-                    className="discussion-delete"
                     onClick={() => handleDelete(c.id)}
                     aria-label="Delete comment"
                     title="Delete comment"
+                    className="ml-auto text-ink-soft/50 hover:text-hard"
                   >
-                    <FiTrash2 aria-hidden="true" />
+                    <FiTrash2 aria-hidden="true" className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
-              <p className="discussion-body">{c.body}</p>
+              <p className="text-[13px] text-ink whitespace-pre-wrap">{c.body}</p>
             </div>
           ))}
         </div>
       )}
 
-      <form className="discussion-form" onSubmit={handlePost}>
-        <textarea
+      <form onSubmit={handlePost} className="flex gap-2">
+        <Textarea
           placeholder="Share your approach, ask a question, or point out a gotcha… (Enter to post, Shift+Enter for a new line)"
           rows={3}
           maxLength={4000}
@@ -98,10 +99,11 @@ export default function Discussion({ problemId }) {
               e.currentTarget.form?.requestSubmit();
             }
           }}
+          className="flex-1"
         />
-        <button type="submit" className="ghost-btn-light" disabled={posting || !body.trim()}>
+        <Button type="submit" variant="secondary" size="sm" disabled={posting || !body.trim()}>
           {posting ? "Posting…" : "Post"}
-        </button>
+        </Button>
       </form>
     </div>
   );

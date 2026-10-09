@@ -12,6 +12,7 @@ import Discussion from "./Discussion.jsx";
 import SubmissionHistory from "./SubmissionHistory.jsx";
 import ContestTimerBanner from "./contest/ContestTimerBanner.jsx";
 import { fetchSubmissions } from "../api/client.js";
+import { Badge, Button, difficultyTone, Input, Label, Spinner, Textarea } from "./ui/index.js";
 
 const CodeEditor = lazy(() => import("./CodeEditor.jsx"));
 
@@ -99,35 +100,43 @@ export default function SolveView({
   };
 
   return (
-    <div className="solve-view">
-      {contestSessionId != null && <ContestTimerBanner contestSessionId={contestSessionId} />}
-      <div className="solve-topbar">
-        <button className="solve-back" onClick={onBack}>
+    <div className="min-h-screen bg-paper">
+      {contestSessionId != null && (
+        <div className="px-5 lg:px-8 pt-3">
+          <ContestTimerBanner contestSessionId={contestSessionId} />
+        </div>
+      )}
+      <div className="sticky top-0 z-20 flex items-center gap-3 px-5 lg:px-8 h-14 border-b border-line bg-paper/90 backdrop-blur-sm">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-[13px] font-medium text-ink-soft hover:text-ink">
           <FiArrowLeft aria-hidden="true" /> Sheet
         </button>
-        <span className="solve-crumb mono">{topicName}</span>
-        <div className="solve-topbar-nav">
-          <button className="ghost-btn" disabled={!hasPrev} onClick={() => onNavigate(-1)}>
+        <span className="mono text-[12px] text-ink-soft truncate">{topicName}</span>
+        <div className="flex items-center gap-1.5">
+          <Button variant="ghost" size="sm" disabled={!hasPrev} onClick={() => onNavigate(-1)}>
             ‹ Prev
-          </button>
-          <button className="ghost-btn" disabled={!hasNext} onClick={() => onNavigate(1)}>
+          </Button>
+          <Button variant="ghost" size="sm" disabled={!hasNext} onClick={() => onNavigate(1)}>
             Next ›
-          </button>
+          </Button>
         </div>
-        {user && <UserMenu user={user} onLogout={onLogout} />}
+        {user && (
+          <div className="ml-auto">
+            <UserMenu user={user} onLogout={onLogout} />
+          </div>
+        )}
       </div>
 
-      <div className="solve-body">
-        <div className="solve-left">
-          <div className="solve-left-header">
-            <h1>{problem.title}</h1>
-            <span className={`chip pill diff-${problem.difficulty.toLowerCase()}`}>{problem.difficulty}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-5 lg:px-8 py-6 max-w-[1600px] mx-auto">
+        <div className="space-y-4 min-w-0">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-[20px] font-semibold text-ink">{problem.title}</h1>
+            <Badge tone={difficultyTone(problem.difficulty)}>{problem.difficulty}</Badge>
             <BookmarkButton bookmarked={problem.bookmarked} onToggle={() => onUpdate(problem.id, { bookmarked: !problem.bookmarked })} />
           </div>
 
-          <div className="solve-tags">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {problem.tags.map((t) => (
-              <span className="chip tag tag-static" key={t}>
+              <span key={t} className="h-5 px-1.5 rounded-pill bg-ink/5 text-ink-soft text-[11px] flex items-center">
                 {t}
               </span>
             ))}
@@ -135,17 +144,17 @@ export default function SolveView({
 
           <StatusPicker status={problem.status} onChange={(status) => onUpdate(problem.id, { status })} />
 
-          {problem.statement && <p className="solve-statement">{problem.statement}</p>}
+          {problem.statement && <p className="text-[14px] text-ink leading-relaxed">{problem.statement}</p>}
 
           <ProblemExample examples={problem.examples} input={problem.exampleInput} output={problem.exampleOutput} />
 
           {problem.constraints?.length > 0 && (
-            <div className="constraints-block">
-              <div className="field-label">Constraints</div>
-              <ul className="constraints-list">
+            <div>
+              <div className="text-[11px] text-ink-soft mb-1.5">Constraints</div>
+              <ul className="space-y-1">
                 {problem.constraints.map((c, i) => (
                   <li key={i}>
-                    <code>{c}</code>
+                    <code className="mono text-[12.5px] text-ink bg-ink/5 rounded px-1.5 py-0.5">{c}</code>
                   </li>
                 ))}
               </ul>
@@ -156,34 +165,30 @@ export default function SolveView({
           <AiHintPanel problemId={problem.id} />
 
           {problem.timeComplexity && problem.spaceComplexity && (
-            <ComplexityCalculator
-              key={problem.id}
-              timeComplexity={problem.timeComplexity}
-              spaceComplexity={problem.spaceComplexity}
-            />
+            <ComplexityCalculator key={problem.id} timeComplexity={problem.timeComplexity} spaceComplexity={problem.spaceComplexity} />
           )}
 
-          <div className="solve-resource-links">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             {problem.externalUrl && (
-              <a className="solve-view-link" href={problem.externalUrl} target="_blank" rel="noreferrer">
-                Full problem, examples &amp; constraints <FiExternalLink aria-hidden="true" />
+              <a href={problem.externalUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[12.5px] text-accent hover:underline">
+                Full problem, examples &amp; constraints <FiExternalLink aria-hidden="true" className="h-3 w-3" />
               </a>
             )}
             {problem.editorialUrl && (
-              <a className="solve-view-link" href={problem.editorialUrl} target="_blank" rel="noreferrer">
-                Editorial <FiExternalLink aria-hidden="true" />
+              <a href={problem.editorialUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[12.5px] text-accent hover:underline">
+                Editorial <FiExternalLink aria-hidden="true" className="h-3 w-3" />
               </a>
             )}
             {problem.videoUrl && (
-              <a className="solve-view-link" href={problem.videoUrl} target="_blank" rel="noreferrer">
-                Video walkthrough <FiExternalLink aria-hidden="true" />
+              <a href={problem.videoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[12.5px] text-accent hover:underline">
+                Video walkthrough <FiExternalLink aria-hidden="true" className="h-3 w-3" />
               </a>
             )}
           </div>
 
-          <label className="field">
-            <span className="field-label">Resource link</span>
-            <input
+          <div>
+            <Label>Resource link</Label>
+            <Input
               type="url"
               placeholder="Paste a link to the problem (LeetCode, GfG, ...)"
               value={linkDraft}
@@ -193,12 +198,12 @@ export default function SolveView({
                 if (e.key === "Enter") e.currentTarget.blur();
               }}
             />
-          </label>
+          </div>
 
           {notesOpen ? (
-            <label className="field">
-              <span className="field-label">Notes</span>
-              <textarea
+            <div>
+              <Label>Notes</Label>
+              <Textarea
                 autoFocus
                 placeholder="Approach, gotchas, complexity, whatever you want to remember next time"
                 rows={5}
@@ -206,38 +211,40 @@ export default function SolveView({
                 onChange={(e) => setNotesDraft(e.target.value)}
                 onBlur={saveNotes}
               />
-            </label>
+            </div>
           ) : (
-            <button className="ghost-btn-light" onClick={() => setNotesOpen(true)}>
+            <Button variant="ghost" size="sm" onClick={() => setNotesOpen(true)}>
               {problem.notes ? "Edit notes" : "+ Add notes"}
-            </button>
+            </Button>
           )}
 
-          <button className="ghost-btn-light" onClick={loadHistory}>
-            {historyOpen ? "Hide submissions" : "Show submissions"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" size="sm" onClick={loadHistory}>
+              {historyOpen ? "Hide submissions" : "Show submissions"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setDiscussionOpen((v) => !v)}>
+              {discussionOpen ? "Hide discussion" : "Show discussion"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setTutorChatOpen((v) => !v)}>
+              {tutorChatOpen ? "Hide AI tutor" : "Ask the AI tutor"}
+            </Button>
+          </div>
+
           {historyOpen && (
-            <SubmissionHistory
-              submissions={submissions}
-              loading={submissionsLoading}
-              error={submissionsError}
-              onRetry={loadSubmissions}
-            />
+            <SubmissionHistory submissions={submissions} loading={submissionsLoading} error={submissionsError} onRetry={loadSubmissions} />
           )}
-
-          <button className="ghost-btn-light" onClick={() => setDiscussionOpen((v) => !v)}>
-            {discussionOpen ? "Hide discussion" : "Show discussion"}
-          </button>
           {discussionOpen && <Discussion problemId={problem.id} />}
-
-          <button className="ghost-btn-light" onClick={() => setTutorChatOpen((v) => !v)}>
-            {tutorChatOpen ? "Hide AI tutor" : "Ask the AI tutor"}
-          </button>
           {tutorChatOpen && <AiTutorChat key={problem.id} problemId={problem.id} />}
         </div>
 
-        <div className={`solve-right ${accepted ? "accepted-pulse" : ""}`}>
-          <Suspense fallback={<div className="editor-loading">Loading editor…</div>}>
+        <div className={`min-w-0 transition-shadow rounded-xl ${accepted ? "ring-2 ring-done" : ""}`}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-64 rounded-xl border border-line bg-paper-raised">
+                <Spinner size="lg" />
+              </div>
+            }
+          >
             <CodeEditor problem={problem} height="52vh" onSubmitted={handleSubmitted} contestSessionId={contestSessionId} />
           </Suspense>
         </div>

@@ -116,7 +116,7 @@ export default function Contest({ onSolveProblem }) {
   }
 
   return (
-    <div className="contest-home">
+    <div className="flex flex-wrap items-start gap-5">
       <ContestSetup onStart={handleStart} starting={starting} error={startError} />
       <ContestHistory sessions={history} onSelect={(id) => setContestId(id)} />
     </div>
