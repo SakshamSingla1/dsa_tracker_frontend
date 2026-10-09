@@ -2,7 +2,6 @@ export default function BookmarkButton({ bookmarked, onToggle, className = "" })
   return (
     <button
       type="button"
-      className={`bookmark-btn ${bookmarked ? "active" : ""} ${className}`}
       title={bookmarked ? "Remove from watchlist" : "Add to watchlist"}
       aria-pressed={bookmarked}
       aria-label={bookmarked ? "Remove from watchlist" : "Add to watchlist"}
@@ -10,6 +9,8 @@ export default function BookmarkButton({ bookmarked, onToggle, className = "" })
         e.stopPropagation();
         onToggle();
       }}
+      className={`h-7 w-7 flex items-center justify-center rounded-md shrink-0 transition-colors
+        ${bookmarked ? "text-accent" : "text-ink-soft/50 hover:text-ink-soft"} ${className}`}
     >
       <svg width="15" height="15" viewBox="0 0 15 15" fill={bookmarked ? "currentColor" : "none"} aria-hidden="true">
         <path

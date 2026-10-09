@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button, Select, Badge } from "./ui/index.js";
 
 const CLASSES = ["O(1)", "O(log n)", "O(√n)", "O(n)", "O(n log n)", "O(n²)", "O(n³)", "O(2ⁿ)", "O(n!)"];
 
@@ -29,54 +30,54 @@ export default function ComplexityCalculator({ timeComplexity, spaceComplexity }
   const spaceMatch = isMatch(guessSpace, spaceComplexity);
 
   return (
-    <div className="complexity-calc">
-      <div className="complexity-calc-title">Complexity calculator</div>
+    <div className="rounded-lg border border-line bg-paper p-3">
+      <div className="text-[12.5px] font-semibold text-ink mb-2.5">Complexity calculator</div>
 
       {!revealed ? (
         <>
-          <div className="complexity-calc-row">
-            <label className="complexity-calc-field">
-              <span>Time</span>
-              <select value={guessTime} onChange={(e) => setGuessTime(e.target.value)}>
+          <div className="grid grid-cols-2 gap-2.5 mb-2.5">
+            <label className="block">
+              <span className="block text-[11.5px] text-ink-soft mb-1">Time</span>
+              <Select value={guessTime} onChange={(e) => setGuessTime(e.target.value)}>
                 <option value="">Your guess…</option>
                 {CLASSES.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
-            <label className="complexity-calc-field">
-              <span>Space</span>
-              <select value={guessSpace} onChange={(e) => setGuessSpace(e.target.value)}>
+            <label className="block">
+              <span className="block text-[11.5px] text-ink-soft mb-1">Space</span>
+              <Select value={guessSpace} onChange={(e) => setGuessSpace(e.target.value)}>
                 <option value="">Your guess…</option>
                 {CLASSES.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           </div>
-          <button className="ghost-btn-light complexity-calc-check" onClick={() => setRevealed(true)}>
+          <Button variant="secondary" size="sm" onClick={() => setRevealed(true)}>
             Check answer
-          </button>
+          </Button>
         </>
       ) : (
-        <div className="complexity-calc-result" role="status" aria-live="polite">
-          <div className={`complexity-calc-answer ${timeMatch ? "match" : ""}`}>
-            <span className="complexity-calc-label">Time</span>
-            <span className="mono">{timeComplexity}</span>
-            {timeMatch && <span className="chip complexity-calc-badge">matched your guess</span>}
+        <div className="space-y-2" role="status" aria-live="polite">
+          <div className="flex items-center gap-2 text-[13px]">
+            <span className="text-ink-soft w-12">Time</span>
+            <span className="mono text-ink">{timeComplexity}</span>
+            {timeMatch && <Badge tone="done">matched your guess</Badge>}
           </div>
-          <div className={`complexity-calc-answer ${spaceMatch ? "match" : ""}`}>
-            <span className="complexity-calc-label">Space</span>
-            <span className="mono">{spaceComplexity}</span>
-            {spaceMatch && <span className="chip complexity-calc-badge">matched your guess</span>}
+          <div className="flex items-center gap-2 text-[13px]">
+            <span className="text-ink-soft w-12">Space</span>
+            <span className="mono text-ink">{spaceComplexity}</span>
+            {spaceMatch && <Badge tone="done">matched your guess</Badge>}
           </div>
-          <button className="ghost-btn-light complexity-calc-check" onClick={() => setRevealed(false)}>
+          <Button variant="secondary" size="sm" onClick={() => setRevealed(false)}>
             Try again
-          </button>
+          </Button>
         </div>
       )}
     </div>

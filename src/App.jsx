@@ -26,6 +26,7 @@ import SkeletonSheet from "./components/SkeletonSheet.jsx";
 import Confetti from "./components/Confetti.jsx";
 import ShareCard from "./components/ShareCard.jsx";
 import AlgorithmVisualizer from "./components/visualizer/AlgorithmVisualizer.jsx";
+import { Button } from "./components/ui/index.js";
 import "./App.css";
 
 const SHEET_KEY = "dsa-active-sheet";
@@ -314,8 +315,8 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="app-shell state-message">
-        <p>{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-paper">
+        <p className="text-[14px] text-ink-soft">{error}</p>
       </div>
     );
   }
@@ -353,7 +354,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-paper">
       <Confetti burstKey={celebrateKey} />
       <CommandPalette
         open={cmdkOpen}
@@ -393,65 +394,67 @@ export default function App() {
       {shareOpen && <ShareCard user={user} accent={accent} onClose={() => setShareOpen(false)} />}
 
       {showStreakBanner && (
-        <div className="streak-risk-banner glass-panel">
-          <GiFlame aria-hidden="true" />
-          <span>
-            You haven&rsquo;t solved anything today &mdash; your {stats.currentStreak}-day streak is at risk.
-          </span>
-          <button
-            className="streak-risk-banner-dismiss"
-            onClick={() => setStreakBannerDismissed(true)}
-            aria-label="Dismiss"
-          >
-            &times;
-          </button>
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 pt-4">
+          <div className="flex items-center gap-2.5 rounded-lg border border-medium/30 bg-medium-soft px-4 py-2.5 text-[13.5px] text-medium">
+            <GiFlame aria-hidden="true" className="shrink-0" />
+            <span className="flex-1">
+              You haven&rsquo;t solved anything today — your {stats.currentStreak}-day streak is at risk.
+            </span>
+            <button
+              onClick={() => setStreakBannerDismissed(true)}
+              aria-label="Dismiss"
+              className="shrink-0 h-5 w-5 flex items-center justify-center rounded hover:bg-medium/10"
+            >
+              &times;
+            </button>
+          </div>
         </div>
       )}
 
       {view === "dashboard" && (
-        <div className="view-transition" key="dashboard">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="dashboard">
           <Dashboard topics={topics} onSolve={setSolvingId} />
         </div>
       )}
 
       {view === "insights" && (
-        <div className="view-transition" key="insights">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="insights">
           <Insights />
         </div>
       )}
 
       {view === "visualizer" && (
-        <div className="view-transition" key="visualizer">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="visualizer">
           <AlgorithmVisualizer />
         </div>
       )}
 
       {view === "contest" && (
-        <div className="view-transition" key="contest">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="contest">
           <Contest onSolveProblem={handleSolveFromContest} />
         </div>
       )}
 
       {view === "interview" && (
-        <div className="view-transition" key="interview">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="interview">
           <Interview />
         </div>
       )}
 
       {view === "leaderboard" && (
-        <div className="view-transition" key="leaderboard">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="leaderboard">
           <Leaderboard sheets={sheets} />
         </div>
       )}
 
       {view === "review" && (
-        <div className="view-transition" key="review">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="review">
           <ReviewQueue onSolve={setSolvingId} onQueueChange={setReviewDueCount} />
         </div>
       )}
 
       {view === "profile" && (
-        <div className="view-transition" key="profile">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="profile">
           <Profile
             stats={stats}
             activeSheetName={activeSheetName}
@@ -473,32 +476,34 @@ export default function App() {
       )}
 
       {view === "sheet" && (
-        <div className="view-transition" key="sheet">
+        <div className="max-w-[1280px] mx-auto px-5 lg:px-8 py-6" key="sheet">
           <ProblemOfDay sheetSlug={activeSheetSlug} onSolve={setSolvingId} />
-          <div className="layout">
+          <div className="flex gap-6 items-start">
             <Sidebar topics={topics} />
-            <main className="content">
+            {/* "content" kept as a literal class -- ProblemRow's keyboard nav selects
+                rows via .closest(".content") */}
+            <main className="content flex-1 min-w-0">
               {filtered.every((f) => f.visibleProblems.length === 0) && (
-                <div className="empty-state">
-                  <span className="empty-state-icon" aria-hidden="true">
+                <div className="flex flex-col items-center gap-3 py-16 text-center">
+                  <span className="h-10 w-10 rounded-full bg-ink/5 text-ink-soft flex items-center justify-center" aria-hidden="true">
                     <FiSearch />
                   </span>
-                  <p>No problems match your filters.</p>
+                  <p className="text-[14px] text-ink-soft">No problems match your filters.</p>
                   {hasActiveFilters && (
-                    <button className="ghost-btn-light" onClick={clearFilters}>
+                    <Button variant="ghost" size="sm" onClick={clearFilters}>
                       Clear filters
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
               {!filtered.every((f) => f.visibleProblems.length === 0) && (
-                <div className="topics-toolbar">
-                  <button className="ghost-btn-light" onClick={expandAllTopics}>
+                <div className="flex justify-end gap-2 mb-3">
+                  <Button variant="ghost" size="sm" onClick={expandAllTopics}>
                     Expand all
-                  </button>
-                  <button className="ghost-btn-light" onClick={collapseAllTopics}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={collapseAllTopics}>
                     Collapse all
-                  </button>
+                  </Button>
                 </div>
               )}
               {filtered.map(({ topic, visibleProblems }) => (

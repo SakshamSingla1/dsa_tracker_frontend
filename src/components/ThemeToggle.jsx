@@ -1,10 +1,10 @@
 export default function ThemeToggle({ isDark, onToggle }) {
   return (
     <button
-      className="theme-toggle"
       onClick={onToggle}
       title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      className="h-8 w-8 flex items-center justify-center rounded-lg border border-line text-ink-soft hover:text-ink hover:border-line-strong transition-colors shrink-0"
     >
       {isDark ? (
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">

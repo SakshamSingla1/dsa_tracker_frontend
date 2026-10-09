@@ -37,6 +37,8 @@ export default function Sidebar({ topics }) {
   const handleKeyDown = (e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
     e.preventDefault();
+    // "sidebar"/"cat-link" are kept as literal class names (alongside the Tailwind utility
+    // classes below) purely so this selector-based keyboard nav keeps working.
     const links = Array.from(e.currentTarget.closest(".sidebar")?.querySelectorAll(".cat-link") ?? []);
     const index = links.indexOf(e.currentTarget);
     const next = links[index + (e.key === "ArrowDown" ? 1 : -1)];
@@ -44,25 +46,30 @@ export default function Sidebar({ topics }) {
   };
 
   return (
-    <nav className="sidebar" aria-label="Topics">
+    <nav className="sidebar hidden lg:flex flex-col gap-0.5 w-56 shrink-0" aria-label="Topics">
       {topics.map((topic) => {
         const done = topic.problems.filter((p) => p.status === "DONE").length;
         const pct = topic.problems.length === 0 ? 0 : Math.round((done / topic.problems.length) * 100);
+        const active = topic.id === activeId;
         return (
           <button
             key={topic.id}
-            className={`cat-link ${topic.id === activeId ? "active" : ""}`}
             onClick={() => scrollTo(topic.id)}
             onKeyDown={handleKeyDown}
+            className={`cat-link group flex flex-col gap-1.5 text-left rounded-lg px-3 py-2 transition-colors
+              ${active ? "bg-accent-soft" : "hover:bg-ink/5"}`}
           >
-            <span className="cat-link-row">
-              <span>{topic.name}</span>
-              <span className="count mono">
+            <span className="flex items-center justify-between gap-2">
+              <span className={`text-[13px] font-medium truncate ${active ? "text-accent" : "text-ink"}`}>{topic.name}</span>
+              <span className="mono text-[11px] text-ink-soft shrink-0">
                 {done}/{topic.problems.length}
               </span>
             </span>
-            <span className="cat-progress-track">
-              <span className={`cat-progress-fill ${pct === 100 ? "complete" : ""}`} style={{ width: `${pct}%` }} />
+            <span className="h-1 rounded-pill bg-ink/8 overflow-hidden">
+              <span
+                className={`block h-full rounded-pill transition-[width] ${pct === 100 ? "bg-done" : "bg-accent"}`}
+                style={{ width: `${pct}%` }}
+              />
             </span>
           </button>
         );

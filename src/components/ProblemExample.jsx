@@ -1,25 +1,29 @@
 function OneExample({ input, output, explanation, index, total }) {
   return (
-    <div className="problem-example">
-      <div className="problem-example-title" role="heading" aria-level="4">
+    <div className="rounded-lg border border-line bg-paper p-3">
+      <div className="text-[12px] font-semibold text-ink-soft mb-2" role="heading" aria-level="4">
         {total > 1 ? `Example ${index + 1}` : "Example"}
       </div>
-      <div className="problem-example-row">
-        <span className="problem-example-label" id={`example-${index}-input-label`}>
+      <div className="flex gap-2 text-[13px] mb-1.5">
+        <span className="text-ink-soft w-16 shrink-0" id={`example-${index}-input-label`}>
           Input
         </span>
-        <code aria-labelledby={`example-${index}-input-label`}>{input}</code>
+        <code aria-labelledby={`example-${index}-input-label`} className="mono text-ink break-all">
+          {input}
+        </code>
       </div>
-      <div className="problem-example-row">
-        <span className="problem-example-label" id={`example-${index}-output-label`}>
+      <div className="flex gap-2 text-[13px]">
+        <span className="text-ink-soft w-16 shrink-0" id={`example-${index}-output-label`}>
           Output
         </span>
-        <code aria-labelledby={`example-${index}-output-label`}>{output}</code>
+        <code aria-labelledby={`example-${index}-output-label`} className="mono text-ink break-all">
+          {output}
+        </code>
       </div>
       {explanation && (
-        <div className="problem-example-row">
-          <span className="problem-example-label">Why</span>
-          <span className="problem-example-explanation">{explanation}</span>
+        <div className="flex gap-2 text-[13px] mt-1.5">
+          <span className="text-ink-soft w-16 shrink-0">Why</span>
+          <span className="text-ink-soft">{explanation}</span>
         </div>
       )}
     </div>
@@ -36,7 +40,7 @@ export default function ProblemExample({ examples, input, output }) {
   if (list.length === 0) return null;
 
   return (
-    <div className="problem-examples" role="group" aria-label="Worked examples">
+    <div className="space-y-2" role="group" aria-label="Worked examples">
       {list.map((ex, i) => (
         <OneExample key={i} input={ex.input} output={ex.output} explanation={ex.explanation} index={i} total={list.length} />
       ))}
